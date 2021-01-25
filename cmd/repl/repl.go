@@ -9,6 +9,12 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+
+	"github.com/anywhereQL/anywhereQL/common/result"
+	"github.com/anywhereQL/anywhereQL/compiler/lexer"
+	"github.com/anywhereQL/anywhereQL/compiler/parser"
+	"github.com/anywhereQL/anywhereQL/compiler/planner"
+	"github.com/anywhereQL/anywhereQL/runtime/vm"
 )
 
 const PROMPT = ">>"
@@ -65,6 +71,27 @@ func (repl *REPL) Start(in io.ReadCloser, out io.Writer) error {
 				return nil
 			}
 		} else {
+			tokens := lexer.Lex(line)
+			ast, err := parser.Parse(tokens)
+			if err != nil {
+				fmt.Fprintf(out, "%v", err)
+				continue
+			}
+			vc := planner.Translate(ast)
+			rs, err := vm.Run(vc)
+			if err != nil {
+				fmt.Fprintf(out, "%v", err)
+				continue
+			}
+			for i, col := range rs {
+				switch col.Type {
+				case result.Integral:
+					fmt.Fprintf(out, "%d", col.Integral)
+				}
+				if i != (len(rs) - 1) {
+					fmt.Fprintf(out, ",")
+				}
+			}
 		}
 		fmt.Fprintf(out, "\n")
 	}
