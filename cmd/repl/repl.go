@@ -10,6 +10,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/anywhereQL/anywhereQL/common/debug"
 	"github.com/anywhereQL/anywhereQL/common/result"
 	"github.com/anywhereQL/anywhereQL/compiler/lexer"
 	"github.com/anywhereQL/anywhereQL/compiler/parser"
@@ -72,12 +73,18 @@ func (repl *REPL) Start(in io.ReadCloser, out io.Writer) error {
 			}
 		} else {
 			tokens := lexer.Lex(line)
+			debug.PrintToken(out, tokens)
+
 			ast, err := parser.Parse(tokens)
 			if err != nil {
 				fmt.Fprintf(out, "%v", err)
 				continue
 			}
+			debug.PrintAST(out, ast)
+
 			vc := planner.Translate(ast)
+			debug.PrintVC(out, vc)
+
 			rs, err := vm.Run(vc)
 			if err != nil {
 				fmt.Fprintf(out, "%v", err)

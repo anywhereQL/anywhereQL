@@ -126,8 +126,9 @@ func (p *parser) parsePrefixExpr() (*ast.Expression, error) {
 		return expr, fmt.Errorf("Unknwon Prefix Operator: %s", p.currentToken.Literal)
 	}
 
+	pre := p.getCurrentTokenPrecedence()
 	p.readToken()
-	ex, err := p.parseExpression(LOWEST)
+	ex, err := p.parseExpression(pre)
 	if err != nil {
 		return expr, err
 	}
