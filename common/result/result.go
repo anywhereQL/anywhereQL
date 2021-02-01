@@ -7,13 +7,16 @@ const (
 	Integral
 	Float
 	Decimal
+	String
 )
 
 type Value struct {
 	Type     ResultType
 	Integral int64
 	Float    float64
-	PartF    int64
-	PartI    int64
-	FDigit   int
+	String   string
+
+	PartF  int64
+	PartI  int64
+	FDigit int
 }

@@ -12,18 +12,27 @@ type Type int
 
 const (
 	UNKNOWN Type = iota
+	NA
 	INTEGER
 	FLOAT
+	DECIMAL
+	STRING
 )
 
 func (t Type) String() string {
 	switch t {
 	case UNKNOWN:
 		return "Unknown value"
+	case NA:
+		return "N/A"
 	case INTEGER:
 		return "Ingeer value"
 	case FLOAT:
 		return "Floating point value"
+	case DECIMAL:
+		return "Decimal"
+	case STRING:
+		return "String"
 	default:
 		return "Error Unknwo value type"
 	}
@@ -33,6 +42,8 @@ type Value struct {
 	Type   Type
 	Int    int64
 	Float  float64
+	String string
+
 	PartI  int64
 	PartF  int64
 	FDigit int
