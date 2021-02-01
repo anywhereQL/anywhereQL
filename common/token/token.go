@@ -16,6 +16,7 @@ const (
 	NUMBER
 
 	K_SELECT
+	K_NULL
 
 	S_PLUS
 	S_MINUS
@@ -42,7 +43,9 @@ func (t Type) String() string {
 		return "NUMBER Token"
 
 	case K_SELECT:
-		return "Keyword: SELECT"
+		return "Keyword (SELECT)"
+	case K_NULL:
+		return "Keyword (NULL)"
 
 	case S_PLUS:
 		return "Symbol: +"
@@ -87,6 +90,8 @@ func LookupKeyword(s string) (bool, Type) {
 	switch strings.ToUpper(s) {
 	case "SELECT":
 		return true, K_SELECT
+	case "NULL":
+		return true, K_NULL
 	default:
 		return false, UNKNOWN
 	}
