@@ -3,7 +3,6 @@ package vm
 import (
 	"fmt"
 
-	"github.com/anywhereQL/anywhereQL/common/result"
 	"github.com/anywhereQL/anywhereQL/common/value"
 	"github.com/anywhereQL/anywhereQL/runtime/vm/function"
 )
@@ -83,9 +82,9 @@ func (c VMCode) String() string {
 	return s
 }
 
-func Run(codes []VMCode) ([]result.Value, error) {
+func Run(codes []VMCode) ([]value.Value, error) {
 	s := newStack()
-	cols := []result.Value{}
+	cols := []value.Value{}
 
 	for _, code := range codes {
 		switch code.Operator {
@@ -94,11 +93,11 @@ func Run(codes []VMCode) ([]result.Value, error) {
 		case ADD:
 			ope2, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			ope1, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
 				v := value.Value{
@@ -125,17 +124,17 @@ func Run(codes []VMCode) ([]result.Value, error) {
 				}
 				s.push(v)
 			} else {
-				return []result.Value{}, fmt.Errorf("Unknown Operation: %s + %s", ope1.Type, ope2.Type)
+				return []value.Value{}, fmt.Errorf("Unknown Operation: %s + %s", ope1.Type, ope2.Type)
 			}
 
 		case SUB:
 			ope2, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			ope1, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
 				v := value.Value{
@@ -162,17 +161,17 @@ func Run(codes []VMCode) ([]result.Value, error) {
 				}
 				s.push(v)
 			} else {
-				return []result.Value{}, fmt.Errorf("Unknown Operation: %s - %s", ope1.Type, ope2.Type)
+				return []value.Value{}, fmt.Errorf("Unknown Operation: %s - %s", ope1.Type, ope2.Type)
 			}
 
 		case MUL:
 			ope2, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			ope1, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
 				v := value.Value{
@@ -199,21 +198,21 @@ func Run(codes []VMCode) ([]result.Value, error) {
 				}
 				s.push(v)
 			} else {
-				return []result.Value{}, fmt.Errorf("Unknown Operation: %s * %s", ope1.Type, ope2.Type)
+				return []value.Value{}, fmt.Errorf("Unknown Operation: %s * %s", ope1.Type, ope2.Type)
 			}
 
 		case DIV:
 			ope2, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			ope1, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
 				if ope2.Int == 0 {
-					return []result.Value{}, fmt.Errorf("Div by 0")
+					return []value.Value{}, fmt.Errorf("Div by 0")
 				}
 				v := value.Value{
 					Type: value.INTEGER,
@@ -222,7 +221,7 @@ func Run(codes []VMCode) ([]result.Value, error) {
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
 				if ope2.Float == 0 {
-					return []result.Value{}, fmt.Errorf("Div by 0")
+					return []value.Value{}, fmt.Errorf("Div by 0")
 				}
 				v := value.Value{
 					Type:  value.FLOAT,
@@ -231,7 +230,7 @@ func Run(codes []VMCode) ([]result.Value, error) {
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
 				if ope2.Int == 0 {
-					return []result.Value{}, fmt.Errorf("Div by 0")
+					return []value.Value{}, fmt.Errorf("Div by 0")
 				}
 				v := value.Value{
 					Type:  value.FLOAT,
@@ -240,7 +239,7 @@ func Run(codes []VMCode) ([]result.Value, error) {
 				s.push(v)
 			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
 				if ope2.Float == 0 {
-					return []result.Value{}, fmt.Errorf("Div by 0")
+					return []value.Value{}, fmt.Errorf("Div by 0")
 				}
 				v := value.Value{
 					Type:  value.FLOAT,
@@ -248,20 +247,20 @@ func Run(codes []VMCode) ([]result.Value, error) {
 				}
 				s.push(v)
 			} else {
-				return []result.Value{}, fmt.Errorf("Unknown Operation: %s / %s", ope1.Type, ope2.Type)
+				return []value.Value{}, fmt.Errorf("Unknown Operation: %s / %s", ope1.Type, ope2.Type)
 			}
 
 		case MOD:
 			ope2, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			if ope2.Int == 0 {
-				return []result.Value{}, fmt.Errorf("Div by 0")
+				return []value.Value{}, fmt.Errorf("Div by 0")
 			}
 			ope1, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
 				v := value.Value{
@@ -270,61 +269,38 @@ func Run(codes []VMCode) ([]result.Value, error) {
 				}
 				s.push(v)
 			} else {
-				return []result.Value{}, fmt.Errorf("Unknown Operation: %s %% %s", ope1.Type, ope2.Type)
+				return []value.Value{}, fmt.Errorf("Unknown Operation: %s %% %s", ope1.Type, ope2.Type)
 			}
 		case CALL:
 			args := []value.Value{}
 
 			argsN, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			for i := 0; int64(i) < argsN.Int; i++ {
 				v, err := s.pop()
 				if err != nil {
-					return []result.Value{}, err
+					return []value.Value{}, err
 				}
 				args = append(args, v)
 			}
 
 			call := function.LookupFunction(code.Operand1.String)
 			if call == nil {
-				return []result.Value{}, fmt.Errorf("Function(%s) is not implement", code.Operand1.String)
+				return []value.Value{}, fmt.Errorf("Function(%s) is not implement", code.Operand1.String)
 			}
 			r, err := call(args)
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
-			var vr value.Value
-			switch r.Type {
-			case result.Integral:
-				vr = value.Value{
-					Type: value.INTEGER,
-					Int:  r.Integral,
-				}
-			case result.Float:
-				vr = value.Value{
-					Type:   value.FLOAT,
-					Float:  r.Float,
-					PartI:  r.PartI,
-					PartF:  r.PartF,
-					FDigit: r.FDigit,
-				}
-			}
-			s.push(vr)
+			s.push(r)
 		case STORE:
 			v, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
-			switch v.Type {
-			case value.INTEGER:
-				cols = append(cols, result.Value{Type: result.Integral, Integral: v.Int})
-			case value.FLOAT:
-				cols = append(cols, result.Value{Type: result.Float, Float: v.Float})
-			case value.DECIMAL:
-				cols = append(cols, result.Value{Type: result.Decimal, PartI: v.PartI, PartF: v.PartF, FDigit: v.FDigit})
-			}
+			cols = append(cols, v)
 		}
 	}
 	return cols, nil

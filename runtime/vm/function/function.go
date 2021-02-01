@@ -3,11 +3,10 @@ package function
 import (
 	"strings"
 
-	"github.com/anywhereQL/anywhereQL/common/result"
 	"github.com/anywhereQL/anywhereQL/common/value"
 )
 
-type callFunction func([]value.Value) (result.Value, error)
+type callFunction func([]value.Value) (value.Value, error)
 
 var funcs = map[string]callFunction{}
 
