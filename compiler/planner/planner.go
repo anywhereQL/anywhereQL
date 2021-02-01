@@ -35,8 +35,17 @@ func translateExpression(expr *ast.Expression) []vm.VMCode {
 	v := vm.VMValue{}
 	if expr.Literal != nil {
 		if expr.Literal.Numeric != nil {
-			v.Type = vm.Integer
-			v.Integral = expr.Literal.Numeric.Integral
+			switch expr.Literal.Numeric.Type {
+			case ast.N_INT:
+				v.Type = vm.Integer
+				v.Integral = expr.Literal.Numeric.Integral
+			case ast.N_FLOAT:
+				v.Type = vm.Float
+				v.Float = expr.Literal.Numeric.Float
+				v.PartF = expr.Literal.Numeric.PartF
+				v.PartI = expr.Literal.Numeric.PartI
+				v.FDigit = expr.Literal.Numeric.FDigit
+			}
 			c := vm.VMCode{
 				Operator: vm.PUSH,
 				Operand1: v,

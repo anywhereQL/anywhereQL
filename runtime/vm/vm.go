@@ -53,6 +53,8 @@ const (
 	_ ValueType = iota
 	NA
 	Integer
+	Float
+	Decimal
 	String
 )
 
@@ -62,6 +64,10 @@ func (v ValueType) String() string {
 		return "N/A"
 	case Integer:
 		return "Integer"
+	case Float:
+		return "Float"
+	case Decimal:
+		return "Decimal"
 	case String:
 		return "String"
 	default:
@@ -72,7 +78,12 @@ func (v ValueType) String() string {
 type VMValue struct {
 	Type     ValueType
 	Integral int64
+	Float    float64
 	String   string
+
+	PartI  int64
+	PartF  int64
+	FDigit int
 }
 
 type VMCode struct {
@@ -89,6 +100,8 @@ func (c VMCode) String() string {
 		switch c.Operand1.Type {
 		case Integer:
 			s = fmt.Sprintf("%s %d", s, c.Operand1.Integral)
+		case Float:
+			s = fmt.Sprintf("%s %f", s, c.Operand1.Float)
 		case String:
 			s = fmt.Sprintf("%s %s", s, c.Operand1.String)
 		}
@@ -98,6 +111,8 @@ func (c VMCode) String() string {
 		switch c.Operand2.Type {
 		case Integer:
 			s = fmt.Sprintf("%s %d", s, c.Operand2.Integral)
+		case Float:
+			s = fmt.Sprintf("%s %f", s, c.Operand2.Float)
 		case String:
 			s = fmt.Sprintf("%s %s", s, c.Operand2.String)
 		}
@@ -123,11 +138,34 @@ func Run(codes []VMCode) ([]result.Value, error) {
 			if err != nil {
 				return []result.Value{}, err
 			}
-			v := VMValue{
-				Type:     Integer,
-				Integral: ope1.Integral + ope2.Integral,
+			if ope1.Type == Integer && ope2.Type == Integer {
+				v := VMValue{
+					Type:     Integer,
+					Integral: ope1.Integral + ope2.Integral,
+				}
+				s.push(v)
+			} else if ope1.Type == Float && ope2.Type == Float {
+				v := VMValue{
+					Type:  Float,
+					Float: ope1.Float + ope2.Float,
+				}
+				s.push(v)
+			} else if ope1.Type == Float && ope2.Type == Integer {
+				v := VMValue{
+					Type:  Float,
+					Float: ope1.Float + float64(ope2.Integral),
+				}
+				s.push(v)
+			} else if ope1.Type == Integer && ope2.Type == Float {
+				v := VMValue{
+					Type:  Float,
+					Float: float64(ope1.Integral) + ope2.Float,
+				}
+				s.push(v)
+			} else {
+				return []result.Value{}, fmt.Errorf("Unknown Operation: %s + %s", ope1.Type, ope2.Type)
 			}
-			s.push(v)
+
 		case SUB:
 			ope2, err := s.pop()
 			if err != nil {
@@ -137,11 +175,34 @@ func Run(codes []VMCode) ([]result.Value, error) {
 			if err != nil {
 				return []result.Value{}, err
 			}
-			v := VMValue{
-				Type:     Integer,
-				Integral: ope1.Integral - ope2.Integral,
+			if ope1.Type == Integer && ope2.Type == Integer {
+				v := VMValue{
+					Type:     Integer,
+					Integral: ope1.Integral - ope2.Integral,
+				}
+				s.push(v)
+			} else if ope1.Type == Float && ope2.Type == Float {
+				v := VMValue{
+					Type:  Float,
+					Float: ope1.Float - ope2.Float,
+				}
+				s.push(v)
+			} else if ope1.Type == Float && ope2.Type == Integer {
+				v := VMValue{
+					Type:  Float,
+					Float: ope1.Float - float64(ope2.Integral),
+				}
+				s.push(v)
+			} else if ope1.Type == Integer && ope2.Type == Float {
+				v := VMValue{
+					Type:  Float,
+					Float: float64(ope1.Integral) - ope2.Float,
+				}
+				s.push(v)
+			} else {
+				return []result.Value{}, fmt.Errorf("Unknown Operation: %s - %s", ope1.Type, ope2.Type)
 			}
-			s.push(v)
+
 		case MUL:
 			ope2, err := s.pop()
 			if err != nil {
@@ -151,11 +212,34 @@ func Run(codes []VMCode) ([]result.Value, error) {
 			if err != nil {
 				return []result.Value{}, err
 			}
-			v := VMValue{
-				Type:     Integer,
-				Integral: ope1.Integral * ope2.Integral,
+			if ope1.Type == Integer && ope2.Type == Integer {
+				v := VMValue{
+					Type:     Integer,
+					Integral: ope1.Integral * ope2.Integral,
+				}
+				s.push(v)
+			} else if ope1.Type == Float && ope2.Type == Float {
+				v := VMValue{
+					Type:  Float,
+					Float: ope1.Float * ope2.Float,
+				}
+				s.push(v)
+			} else if ope1.Type == Float && ope2.Type == Integer {
+				v := VMValue{
+					Type:  Float,
+					Float: ope1.Float * float64(ope2.Integral),
+				}
+				s.push(v)
+			} else if ope1.Type == Integer && ope2.Type == Float {
+				v := VMValue{
+					Type:  Float,
+					Float: float64(ope1.Integral) * ope2.Float,
+				}
+				s.push(v)
+			} else {
+				return []result.Value{}, fmt.Errorf("Unknown Operation: %s * %s", ope1.Type, ope2.Type)
 			}
-			s.push(v)
+
 		case DIV:
 			ope2, err := s.pop()
 			if err != nil {
@@ -168,11 +252,34 @@ func Run(codes []VMCode) ([]result.Value, error) {
 			if err != nil {
 				return []result.Value{}, err
 			}
-			v := VMValue{
-				Type:     Integer,
-				Integral: ope1.Integral / ope2.Integral,
+			if ope1.Type == Integer && ope2.Type == Integer {
+				v := VMValue{
+					Type:     Integer,
+					Integral: ope1.Integral / ope2.Integral,
+				}
+				s.push(v)
+			} else if ope1.Type == Float && ope2.Type == Float {
+				v := VMValue{
+					Type:  Float,
+					Float: ope1.Float / ope2.Float,
+				}
+				s.push(v)
+			} else if ope1.Type == Float && ope2.Type == Integer {
+				v := VMValue{
+					Type:  Float,
+					Float: ope1.Float / float64(ope2.Integral),
+				}
+				s.push(v)
+			} else if ope1.Type == Integer && ope2.Type == Float {
+				v := VMValue{
+					Type:  Float,
+					Float: float64(ope1.Integral) / ope2.Float,
+				}
+				s.push(v)
+			} else {
+				return []result.Value{}, fmt.Errorf("Unknown Operation: %s / %s", ope1.Type, ope2.Type)
 			}
-			s.push(v)
+
 		case MOD:
 			ope2, err := s.pop()
 			if err != nil {
@@ -185,11 +292,15 @@ func Run(codes []VMCode) ([]result.Value, error) {
 			if err != nil {
 				return []result.Value{}, err
 			}
-			v := VMValue{
-				Type:     Integer,
-				Integral: ope1.Integral % ope2.Integral,
+			if ope1.Type == Integer && ope2.Type == Integer {
+				v := VMValue{
+					Type:     Integer,
+					Integral: ope1.Integral % ope2.Integral,
+				}
+				s.push(v)
+			} else {
+				return []result.Value{}, fmt.Errorf("Unknown Operation: %s %% %s", ope1.Type, ope2.Type)
 			}
-			s.push(v)
 		case CALL:
 			args := []interface{}{}
 
@@ -205,8 +316,12 @@ func Run(codes []VMCode) ([]result.Value, error) {
 				switch v.Type {
 				case Integer:
 					args = append(args, v.Integral)
+				case Float:
+					args = append(args, v.Float)
 				case String:
 					args = append(args, v.String)
+				default:
+					return []result.Value{}, fmt.Errorf("Unknwon Argument Type: %s", v.Type)
 				}
 			}
 
@@ -222,6 +337,14 @@ func Run(codes []VMCode) ([]result.Value, error) {
 					Type:     Integer,
 					Integral: r.Integral,
 				}
+			case result.Float:
+				vr = VMValue{
+					Type:   Float,
+					Float:  r.Float,
+					PartI:  r.PartI,
+					PartF:  r.PartF,
+					FDigit: r.FDigit,
+				}
 			}
 			s.push(vr)
 		case STORE:
@@ -229,8 +352,13 @@ func Run(codes []VMCode) ([]result.Value, error) {
 			if err != nil {
 				return []result.Value{}, err
 			}
-			if v.Type == Integer {
+			switch v.Type {
+			case Integer:
 				cols = append(cols, result.Value{Type: result.Integral, Integral: v.Integral})
+			case Float:
+				cols = append(cols, result.Value{Type: result.Float, Float: v.Float})
+			case Decimal:
+				cols = append(cols, result.Value{Type: result.Decimal, PartI: v.PartI, PartF: v.PartF, FDigit: v.FDigit})
 			}
 		}
 	}

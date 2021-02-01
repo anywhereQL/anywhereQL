@@ -94,6 +94,8 @@ func (repl *REPL) Start(in io.ReadCloser, out io.Writer) error {
 				switch col.Type {
 				case result.Integral:
 					fmt.Fprintf(out, "%d", col.Integral)
+				case result.Float:
+					fmt.Fprintf(out, "%f", col.Float)
 				}
 				if i != (len(rs) - 1) {
 					fmt.Fprintf(out, ",")
