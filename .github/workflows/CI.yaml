@@ -14,6 +14,6 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     - name: Go mod download
-      uses: go mod download
+      run: go mod download
     - name: Go test
-      uses: go test -v ./...
+      run: go test -v ./...
