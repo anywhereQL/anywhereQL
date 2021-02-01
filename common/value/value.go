@@ -17,6 +17,7 @@ const (
 	FLOAT
 	DECIMAL
 	STRING
+	NULL
 )
 
 func (t Type) String() string {
@@ -33,6 +34,8 @@ func (t Type) String() string {
 		return "Decimal"
 	case STRING:
 		return "String"
+	case NULL:
+		return "Null"
 	default:
 		return "Error Unknwo value type"
 	}
