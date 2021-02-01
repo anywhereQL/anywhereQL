@@ -144,16 +144,22 @@ func (p *parser) parseFunctionCallExpr() (*ast.Expression, error) {
 	}
 
 	expr.FunctionCall.Name = strings.ToUpper(p.currentToken.Literal)
+	p.readToken()
 
 	for {
 		p.readToken()
 		ex, err := p.parseExpression(LOWEST)
 		if err != nil {
-			return expr, nil
+			return expr, err
 		}
 		expr.FunctionCall.Args = append(expr.FunctionCall.Args, *ex)
+
+		p.readToken()
 		if p.currentToken.Type == token.S_RPAREN {
 			break
+		}
+		if p.currentToken.Type != token.S_COMMA {
+			return expr, fmt.Errorf("Unknwon Token must be COMMA or RPAREN, but %s", p.currentToken.Literal)
 		}
 	}
 	return expr, nil
