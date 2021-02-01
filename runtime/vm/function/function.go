@@ -1,13 +1,21 @@
 package function
 
-import "github.com/anywhereQL/anywhereQL/common/result"
+import (
+	"strings"
 
-type callFunction func([]interface{}) result.Value
+	"github.com/anywhereQL/anywhereQL/common/value"
+)
 
-var funcs = map[string]callFunction{}
+type CallFunction func([]value.Value) (value.Value, error)
 
-func LookupFunction(name string) callFunction {
-	if f, exists := funcs[name]; exists {
+var funcs = map[string]CallFunction{
+	"abs": Abs,
+	"sign": Sign,
+
+}
+
+func LookupFunction(name string) CallFunction {
+	if f, exists := funcs[strings.ToLower(name)]; exists {
 		return f
 	}
 	return nil
