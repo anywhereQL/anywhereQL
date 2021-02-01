@@ -6,11 +6,15 @@ import (
 	"github.com/anywhereQL/anywhereQL/common/value"
 )
 
-type callFunction func([]value.Value) (value.Value, error)
+type CallFunction func([]value.Value) (value.Value, error)
 
-var funcs = map[string]callFunction{}
+var funcs = map[string]CallFunction{
+	"abs": Abs,
+	"sign": Sign,
 
-func LookupFunction(name string) callFunction {
+}
+
+func LookupFunction(name string) CallFunction {
 	if f, exists := funcs[strings.ToLower(name)]; exists {
 		return f
 	}
