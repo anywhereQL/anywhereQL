@@ -25,6 +25,19 @@ func TestLexer(t *testing.T) {
 			},
 			isError: false,
 		},
+		{
+			input: "NULL",
+			expected: token.Tokens{
+				{
+					Type:    token.K_NULL,
+					Literal: "NULL",
+				},
+				{
+					Type: token.EOS,
+				},
+			},
+			isError: false,
+		},
 	}
 
 	for tn, tc := range testCases {
