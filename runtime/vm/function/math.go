@@ -457,3 +457,61 @@ func Atan(args []value.Value) (value.Value, error) {
 	r.Float = math.Atan(op1)
 	return r, nil
 }
+
+func Atan2(args []value.Value) (value.Value, error) {
+	r := value.Value{
+		Type: value.FLOAT,
+	}
+
+	if len(args) != 2 {
+		return r, fmt.Errorf("Arg length mismatch")
+	}
+	var op1 float64
+	var op2 float64
+
+	if args[1].Type == value.INTEGER {
+		op1 = float64(args[1].Int)
+	} else if args[1].Type == value.FLOAT {
+		op1 = args[1].Float
+	} else {
+		return r, fmt.Errorf("Arg type unknown")
+	}
+
+	if args[0].Type == value.INTEGER {
+		op2 = float64(args[0].Int)
+	} else if args[0].Type == value.FLOAT {
+		op2 = args[0].Float
+	} else {
+		return r, fmt.Errorf("Arg type unknown")
+	}
+
+	r.Float = math.Atan2(op2, op1)
+	return r, nil
+}
+
+func Cot(args []value.Value) (value.Value, error) {
+	r := value.Value{
+		Type: value.FLOAT,
+	}
+
+	if len(args) != 1 {
+		return r, fmt.Errorf("Arg length mismatch")
+	}
+	var op1 float64
+
+	if args[0].Type == value.INTEGER {
+		op1 = float64(args[0].Int)
+	} else if args[0].Type == value.FLOAT {
+		op1 = args[0].Float
+	} else {
+		return r, fmt.Errorf("Arg type unknown")
+	}
+
+	if op1 == 0.0 {
+		r.Type = value.NULL
+		return r, nil
+	}
+
+	r.Float = 1.0 / math.Tan(op1)
+	return r, nil
+}
