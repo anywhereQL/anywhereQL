@@ -124,10 +124,6 @@ func TestLexer(t *testing.T) {
 					Literal: ";",
 				},
 				{
-					Type:    token.K_NULL,
-					Literal: "NULL",
-				},
-				{
 					Type: token.EOS,
 				},
 			},
