@@ -122,7 +122,7 @@ func TestLexer(t *testing.T) {
 				{
 					Type:    token.S_SEMICOLON,
 					Literal: ";",
-        
+				},
 				{
 					Type:    token.K_NULL,
 					Literal: "NULL",
