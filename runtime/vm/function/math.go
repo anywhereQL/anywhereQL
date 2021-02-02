@@ -376,3 +376,84 @@ func Tan(args []value.Value) (value.Value, error) {
 	r.Float = math.Tan(op1)
 	return r, nil
 }
+
+func Asin(args []value.Value) (value.Value, error) {
+	r := value.Value{
+		Type: value.FLOAT,
+	}
+
+	if len(args) != 1 {
+		return r, fmt.Errorf("Arg length mismatch")
+	}
+	var op1 float64
+
+	if args[0].Type == value.INTEGER {
+		op1 = float64(args[0].Int)
+	} else if args[0].Type == value.FLOAT {
+		op1 = args[0].Float
+	} else {
+		return r, fmt.Errorf("Arg type unknown")
+	}
+
+	if op1 < -1.0 || op1 > 1.0 {
+		r.Type = value.NULL
+		return r, nil
+	}
+
+	r.Float = math.Asin(op1)
+	return r, nil
+}
+
+func Acos(args []value.Value) (value.Value, error) {
+	r := value.Value{
+		Type: value.FLOAT,
+	}
+
+	if len(args) != 1 {
+		return r, fmt.Errorf("Arg length mismatch")
+	}
+	var op1 float64
+
+	if args[0].Type == value.INTEGER {
+		op1 = float64(args[0].Int)
+	} else if args[0].Type == value.FLOAT {
+		op1 = args[0].Float
+	} else {
+		return r, fmt.Errorf("Arg type unknown")
+	}
+
+	if op1 < -1.0 || op1 > 1.0 {
+		r.Type = value.NULL
+		return r, nil
+	}
+
+	r.Float = math.Acos(op1)
+	return r, nil
+}
+
+func Atan(args []value.Value) (value.Value, error) {
+	r := value.Value{
+		Type: value.FLOAT,
+	}
+
+	if len(args) != 1 {
+		return r, fmt.Errorf("Arg length mismatch")
+	}
+	var op1 float64
+
+	if args[0].Type == value.INTEGER {
+		op1 = float64(args[0].Int)
+	} else if args[0].Type == value.FLOAT {
+		op1 = args[0].Float
+	} else {
+		return r, fmt.Errorf("Arg type unknown")
+	}
+
+	if op1 < -1.0 || op1 > 1.0 {
+		r.Type = value.NULL
+		return r, nil
+	}
+
+	r.Float = math.Atan(op1)
+	return r, nil
+}

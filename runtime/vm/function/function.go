@@ -28,6 +28,9 @@ var funcs = map[string]CallFunction{
 	"cos": Cos,
 	"cosh": Cosh,
 	"tan": Tan,
+	"acos": Acos,
+	"asin": Asin,
+	"atan": Atan,
 }
 
 func LookupFunction(name string) CallFunction {
