@@ -2,6 +2,7 @@ package planner
 
 import (
 	"github.com/anywhereQL/anywhereQL/common/ast"
+	"github.com/anywhereQL/anywhereQL/common/value"
 	"github.com/anywhereQL/anywhereQL/runtime/vm"
 )
 
@@ -15,8 +16,8 @@ func Translate(a *ast.AST) []vm.VMCode {
 
 			s := vm.VMCode{
 				Operator: vm.STORE,
-				Operand1: vm.VMValue{
-					Type: vm.NA,
+				Operand1: value.Value{
+					Type: value.NA,
 				},
 			}
 			codes = append(codes, s)
@@ -32,11 +33,20 @@ func translateSelectColumn(c ast.SelectColumn) []vm.VMCode {
 
 func translateExpression(expr *ast.Expression) []vm.VMCode {
 	codes := []vm.VMCode{}
-	v := vm.VMValue{}
+	v := value.Value{}
 	if expr.Literal != nil {
 		if expr.Literal.Numeric != nil {
-			v.Type = vm.Integer
-			v.Integral = expr.Literal.Numeric.Integral
+			switch expr.Literal.Numeric.Type {
+			case ast.N_INT:
+				v.Type = value.INTEGER
+				v.Int = expr.Literal.Numeric.Integral
+			case ast.N_FLOAT:
+				v.Type = value.FLOAT
+				v.Float = expr.Literal.Numeric.Float
+				v.PartF = expr.Literal.Numeric.PartF
+				v.PartI = expr.Literal.Numeric.PartI
+				v.FDigit = expr.Literal.Numeric.FDigit
+			}
 			c := vm.VMCode{
 				Operator: vm.PUSH,
 				Operand1: v,
@@ -82,7 +92,7 @@ func translateExpression(expr *ast.Expression) []vm.VMCode {
 		codes = append(codes, c...)
 		switch expr.UnaryOperation.Operator {
 		case ast.U_MINUS:
-			codes = append(codes, vm.VMCode{Operator: vm.PUSH, Operand1: vm.VMValue{Type: vm.Integer, Integral: -1}})
+			codes = append(codes, vm.VMCode{Operator: vm.PUSH, Operand1: value.Value{Type: value.INTEGER, Int: -1}})
 			codes = append(codes, vm.VMCode{Operator: vm.MUL})
 		}
 		return codes
@@ -91,8 +101,8 @@ func translateExpression(expr *ast.Expression) []vm.VMCode {
 			c := translateExpression(&arg)
 			codes = append(codes, c...)
 		}
-		codes = append(codes, vm.VMCode{Operator: vm.PUSH, Operand1: vm.VMValue{Type: vm.Integer, Integral: int64(len(expr.FunctionCall.Args))}})
-		codes = append(codes, vm.VMCode{Operator: vm.CALL, Operand1: vm.VMValue{Type: vm.String, String: expr.FunctionCall.Name}})
+		codes = append(codes, vm.VMCode{Operator: vm.PUSH, Operand1: value.Value{Type: value.INTEGER, Int: int64(len(expr.FunctionCall.Args))}})
+		codes = append(codes, vm.VMCode{Operator: vm.CALL, Operand1: value.Value{Type: value.STRING, String: expr.FunctionCall.Name}})
 		return codes
 	}
 	return codes

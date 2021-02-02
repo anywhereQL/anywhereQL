@@ -1,8 +1,12 @@
 package vm
 
-import "fmt"
+import (
+	"fmt"
 
-type stack []VMValue
+	"github.com/anywhereQL/anywhereQL/common/value"
+)
+
+type stack []value.Value
 
 func (s *stack) size() int {
 	return len(*s)
@@ -17,13 +21,13 @@ func newStack() *stack {
 	return s
 }
 
-func (s *stack) push(v VMValue) {
+func (s *stack) push(v value.Value) {
 	*s = append(*s, v)
 }
 
-func (s *stack) pop() (VMValue, error) {
+func (s *stack) pop() (value.Value, error) {
 	if s.empty() {
-		return VMValue{}, fmt.Errorf("stack underflow error")
+		return value.Value{}, fmt.Errorf("stack underflow error")
 	}
 
 	v := (*s)[len(*s)-1]

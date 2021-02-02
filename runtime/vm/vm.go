@@ -3,7 +3,7 @@ package vm
 import (
 	"fmt"
 
-	"github.com/anywhereQL/anywhereQL/common/result"
+	"github.com/anywhereQL/anywhereQL/common/value"
 	"github.com/anywhereQL/anywhereQL/runtime/vm/function"
 )
 
@@ -47,58 +47,34 @@ func (o OpeType) String() string {
 	}
 }
 
-type ValueType int
-
-const (
-	_ ValueType = iota
-	NA
-	Integer
-	String
-)
-
-func (v ValueType) String() string {
-	switch v {
-	case NA:
-		return "N/A"
-	case Integer:
-		return "Integer"
-	case String:
-		return "String"
-	default:
-		return "Unknown"
-	}
-}
-
-type VMValue struct {
-	Type     ValueType
-	Integral int64
-	String   string
-}
-
 type VMCode struct {
 	Operator OpeType
-	Operand1 VMValue
-	Operand2 VMValue
+	Operand1 value.Value
+	Operand2 value.Value
 }
 
 func (c VMCode) String() string {
 	s := ""
 	s = fmt.Sprintf("%s", c.Operator)
 
-	if c.Operand1.Type != NA {
+	if c.Operand1.Type != value.NA {
 		switch c.Operand1.Type {
-		case Integer:
-			s = fmt.Sprintf("%s %d", s, c.Operand1.Integral)
-		case String:
+		case value.INTEGER:
+			s = fmt.Sprintf("%s %d", s, c.Operand1.Int)
+		case value.FLOAT:
+			s = fmt.Sprintf("%s %f", s, c.Operand1.Float)
+		case value.STRING:
 			s = fmt.Sprintf("%s %s", s, c.Operand1.String)
 		}
 	}
 
-	if c.Operand2.Type != NA {
+	if c.Operand2.Type != value.NA {
 		switch c.Operand2.Type {
-		case Integer:
-			s = fmt.Sprintf("%s %d", s, c.Operand2.Integral)
-		case String:
+		case value.INTEGER:
+			s = fmt.Sprintf("%s %d", s, c.Operand2.Int)
+		case value.FLOAT:
+			s = fmt.Sprintf("%s %f", s, c.Operand2.Float)
+		case value.STRING:
 			s = fmt.Sprintf("%s %s", s, c.Operand2.String)
 		}
 	}
@@ -106,9 +82,9 @@ func (c VMCode) String() string {
 	return s
 }
 
-func Run(codes []VMCode) ([]result.Value, error) {
+func Run(codes []VMCode) ([]value.Value, error) {
 	s := newStack()
-	cols := []result.Value{}
+	cols := []value.Value{}
 
 	for _, code := range codes {
 		switch code.Operator {
@@ -117,121 +93,214 @@ func Run(codes []VMCode) ([]result.Value, error) {
 		case ADD:
 			ope2, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			ope1, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
-			v := VMValue{
-				Type:     Integer,
-				Integral: ope1.Integral + ope2.Integral,
+			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.INTEGER,
+					Int:  ope1.Int + ope2.Int,
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: ope1.Float + ope2.Float,
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: ope1.Float + float64(ope2.Int),
+				}
+				s.push(v)
+			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: float64(ope1.Int) + ope2.Float,
+				}
+				s.push(v)
+			} else {
+				return []value.Value{}, fmt.Errorf("Unknown Operation: %s + %s", ope1.Type, ope2.Type)
 			}
-			s.push(v)
+
 		case SUB:
 			ope2, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			ope1, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
-			v := VMValue{
-				Type:     Integer,
-				Integral: ope1.Integral - ope2.Integral,
+			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.INTEGER,
+					Int:  ope1.Int - ope2.Int,
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: ope1.Float - ope2.Float,
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: ope1.Float - float64(ope2.Int),
+				}
+				s.push(v)
+			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: float64(ope1.Int) - ope2.Float,
+				}
+				s.push(v)
+			} else {
+				return []value.Value{}, fmt.Errorf("Unknown Operation: %s - %s", ope1.Type, ope2.Type)
 			}
-			s.push(v)
+
 		case MUL:
 			ope2, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
 			ope1, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
-			v := VMValue{
-				Type:     Integer,
-				Integral: ope1.Integral * ope2.Integral,
+			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.INTEGER,
+					Int:  ope1.Int * ope2.Int,
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: ope1.Float * ope2.Float,
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: ope1.Float * float64(ope2.Int),
+				}
+				s.push(v)
+			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: float64(ope1.Int) * ope2.Float,
+				}
+				s.push(v)
+			} else {
+				return []value.Value{}, fmt.Errorf("Unknown Operation: %s * %s", ope1.Type, ope2.Type)
 			}
-			s.push(v)
+
 		case DIV:
 			ope2, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
-			}
-			if ope2.Integral == 0 {
-				return []result.Value{}, fmt.Errorf("Div by 0")
+				return []value.Value{}, err
 			}
 			ope1, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
-			v := VMValue{
-				Type:     Integer,
-				Integral: ope1.Integral / ope2.Integral,
+			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
+				if ope2.Int == 0 {
+					return []value.Value{}, fmt.Errorf("Div by 0")
+				}
+				v := value.Value{
+					Type: value.INTEGER,
+					Int:  ope1.Int / ope2.Int,
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
+				if ope2.Float == 0 {
+					return []value.Value{}, fmt.Errorf("Div by 0")
+				}
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: ope1.Float / ope2.Float,
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
+				if ope2.Int == 0 {
+					return []value.Value{}, fmt.Errorf("Div by 0")
+				}
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: ope1.Float / float64(ope2.Int),
+				}
+				s.push(v)
+			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
+				if ope2.Float == 0 {
+					return []value.Value{}, fmt.Errorf("Div by 0")
+				}
+				v := value.Value{
+					Type:  value.FLOAT,
+					Float: float64(ope1.Int) / ope2.Float,
+				}
+				s.push(v)
+			} else {
+				return []value.Value{}, fmt.Errorf("Unknown Operation: %s / %s", ope1.Type, ope2.Type)
 			}
-			s.push(v)
+
 		case MOD:
 			ope2, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
-			if ope2.Integral == 0 {
-				return []result.Value{}, fmt.Errorf("Div by 0")
+			if ope2.Int == 0 {
+				return []value.Value{}, fmt.Errorf("Div by 0")
 			}
 			ope1, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
-			v := VMValue{
-				Type:     Integer,
-				Integral: ope1.Integral % ope2.Integral,
+			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.INTEGER,
+					Int:  ope1.Int % ope2.Int,
+				}
+				s.push(v)
+			} else {
+				return []value.Value{}, fmt.Errorf("Unknown Operation: %s %% %s", ope1.Type, ope2.Type)
 			}
-			s.push(v)
 		case CALL:
-			args := []interface{}{}
+			args := []value.Value{}
 
 			argsN, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
-			for i := 0; int64(i) < argsN.Integral; i++ {
+			for i := 0; int64(i) < argsN.Int; i++ {
 				v, err := s.pop()
 				if err != nil {
-					return []result.Value{}, err
+					return []value.Value{}, err
 				}
-				switch v.Type {
-				case Integer:
-					args = append(args, v.Integral)
-				case String:
-					args = append(args, v.String)
-				}
+				args = append(args, v)
 			}
 
 			call := function.LookupFunction(code.Operand1.String)
 			if call == nil {
-				return []result.Value{}, fmt.Errorf("Function(%s) is not implement", code.Operand1.String)
+				return []value.Value{}, fmt.Errorf("Function(%s) is not implement", code.Operand1.String)
 			}
-			r := call(args)
-			var vr VMValue
-			switch r.Type {
-			case result.Integral:
-				vr = VMValue{
-					Type:     Integer,
-					Integral: r.Integral,
-				}
+			r, err := call(args)
+			if err != nil {
+				return []value.Value{}, err
 			}
-			s.push(vr)
+			s.push(r)
 		case STORE:
 			v, err := s.pop()
 			if err != nil {
-				return []result.Value{}, err
+				return []value.Value{}, err
 			}
-			if v.Type == Integer {
-				cols = append(cols, result.Value{Type: result.Integral, Integral: v.Integral})
-			}
+			cols = append(cols, v)
 		}
 	}
 	return cols, nil

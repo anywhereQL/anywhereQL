@@ -10,7 +10,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/anywhereQL/anywhereQL/common/result"
+	"github.com/anywhereQL/anywhereQL/common/debug"
+	"github.com/anywhereQL/anywhereQL/common/value"
 	"github.com/anywhereQL/anywhereQL/compiler/lexer"
 	"github.com/anywhereQL/anywhereQL/compiler/parser"
 	"github.com/anywhereQL/anywhereQL/compiler/planner"
@@ -72,12 +73,18 @@ func (repl *REPL) Start(in io.ReadCloser, out io.Writer) error {
 			}
 		} else {
 			tokens := lexer.Lex(line)
+			debug.PrintToken(out, tokens)
+
 			ast, err := parser.Parse(tokens)
 			if err != nil {
 				fmt.Fprintf(out, "%v", err)
 				continue
 			}
+			debug.PrintAST(out, ast)
+
 			vc := planner.Translate(ast)
+			debug.PrintVC(out, vc)
+
 			rs, err := vm.Run(vc)
 			if err != nil {
 				fmt.Fprintf(out, "%v", err)
@@ -85,8 +92,12 @@ func (repl *REPL) Start(in io.ReadCloser, out io.Writer) error {
 			}
 			for i, col := range rs {
 				switch col.Type {
-				case result.Integral:
-					fmt.Fprintf(out, "%d", col.Integral)
+				case value.INTEGER:
+					fmt.Fprintf(out, "%d", col.Int)
+				case value.FLOAT:
+					fmt.Fprintf(out, "%f", col.Float)
+				case value.NULL:
+					fmt.Fprintf(out, "NULL")
 				}
 				if i != (len(rs) - 1) {
 					fmt.Fprintf(out, ",")
