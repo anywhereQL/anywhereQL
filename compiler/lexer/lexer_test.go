@@ -147,3 +147,90 @@ func TestLexer(t *testing.T) {
 		}
 	}
 }
+
+func Test_readNumber(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected string
+	}{
+		{
+			input:    "1",
+			expected: "1",
+		},
+		{
+			input:    "12",
+			expected: "12",
+		},
+		{
+			input:    "1a",
+			expected: "1",
+		},
+		{
+			input:    "0",
+			expected: "0",
+		},
+		{
+			input:    "0 ",
+			expected: "0",
+		},
+		{
+			input:    "0.5",
+			expected: "0.5",
+		},
+		{
+			input:    ".29",
+			expected: ".29",
+		},
+	}
+
+	for tn, tc := range testCases {
+		l := new(tc.input)
+		r := l.readNumber()
+		if r != tc.expected {
+			t.Errorf("[%d] expected: %s, but got %s", tn, tc.expected, r)
+		}
+	}
+}
+
+func Test_findToken(t *testing.T) {
+	testCases := []struct {
+		input    string
+		expected token.Token
+	}{
+		{
+			input: "SELECT",
+			expected: token.Token{
+				Type: token.K_SELECT,
+			},
+		},
+		{
+			input: "a.1",
+			expected: token.Token{
+				Type: token.IDENT,
+			},
+		},
+		{
+			input: "1",
+			expected: token.Token{
+				Type: token.NUMBER,
+			},
+		},
+		{
+			input: "1.2",
+			expected: token.Token{
+				Type: token.NUMBER,
+			},
+		},
+	}
+
+	for tn, tc := range testCases {
+		l := new(tc.input)
+		r, err := l.findToken()
+		if err != nil {
+			t.Fatalf("[%d] Error occured: %v", tn, err)
+		}
+		if r.Type != tc.expected.Type {
+			t.Errorf("[%d] expected: %s, but got %s", tn, tc.expected.Type, r.Type)
+		}
+	}
+}

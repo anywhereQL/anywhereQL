@@ -36,6 +36,13 @@ func (l *lexer) getCurrentChar() rune {
 	return l.src[l.currentPos]
 }
 
+func (l *lexer) getNextChar() rune {
+	if l.currentPos+1 >= len(l.src) {
+		return 0
+	}
+	return l.src[l.currentPos+1]
+}
+
 func (l *lexer) readChar() {
 	l.currentPos = l.readPos
 	l.readPos++
@@ -69,7 +76,7 @@ func (l *lexer) findToken() (token.Token, error) {
 	if helper.IsSymbol(ch) {
 		v, t := l.lookupSymbol()
 		return token.Token{Type: t, Literal: v}, nil
-	} else if helper.IsDigit(ch) {
+	} else if helper.IsDigit(ch) || (ch == '.' && helper.IsDigit(l.getNextChar())) {
 		v := l.readNumber()
 		val, err := value.Convert(v)
 		if err != nil {
@@ -120,6 +127,20 @@ func (l *lexer) readNumber() string {
 			l.readChar()
 		} else {
 			break
+		}
+	}
+	ch := l.getCurrentChar()
+	if ch == '.' {
+		v = append(v, ch)
+		l.readChar()
+		for {
+			ch = l.getCurrentChar()
+			if helper.IsDigit(ch) {
+				v = append(v, ch)
+				l.readChar()
+			} else {
+				break
+			}
 		}
 	}
 	return string(v)
