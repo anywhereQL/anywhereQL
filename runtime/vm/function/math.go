@@ -3,6 +3,7 @@ package function
 import (
 	"fmt"
 	"math"
+	"math/rand"
 
 	"github.com/anywhereQL/anywhereQL/common/value"
 )
@@ -514,4 +515,155 @@ func Cot(args []value.Value) (value.Value, error) {
 
 	r.Float = 1.0 / math.Tan(op1)
 	return r, nil
+}
+
+func Degrees(args []value.Value) (value.Value, error) {
+	r := value.Value{
+		Type: value.FLOAT,
+	}
+
+	if len(args) != 1 {
+		return r, fmt.Errorf("Arg length mismatch")
+	}
+	var op1 float64
+
+	if args[0].Type == value.INTEGER {
+		op1 = float64(args[0].Int)
+	} else if args[0].Type == value.FLOAT {
+		op1 = args[0].Float
+	} else {
+		return r, fmt.Errorf("Arg type unknown")
+	}
+
+	r.Float = op1 / (2 * math.Pi) * 360.0
+	return r, nil
+}
+
+func Radians(args []value.Value) (value.Value, error) {
+	r := value.Value{
+		Type: value.FLOAT,
+	}
+
+	if len(args) != 1 {
+		return r, fmt.Errorf("Arg length mismatch")
+	}
+	var op1 float64
+
+	if args[0].Type == value.INTEGER {
+		op1 = float64(args[0].Int)
+	} else if args[0].Type == value.FLOAT {
+		op1 = args[0].Float
+	} else {
+		return r, fmt.Errorf("Arg type unknown")
+	}
+
+	r.Float = op1 / 180.0 * math.Pi
+	return r, nil
+}
+
+func Pi(args []value.Value) (value.Value, error) {
+	r := value.Value{
+		Type: value.FLOAT,
+	}
+
+	if len(args) != 0 {
+		return r, fmt.Errorf("Arg length mismatch")
+	}
+
+	r.Float = math.Pi
+	return r, nil
+}
+
+func Rand(args []value.Value) (value.Value, error) {
+	r := value.Value{
+		Type: value.FLOAT,
+	}
+
+	if len(args) >= 2 {
+		return r, fmt.Errorf("Arg length mismatch")
+	}
+	var op1 int64
+
+	if len(args) == 0 {
+		r.Float = rand.Float64()
+	} else {
+		if args[0].Type == value.INTEGER {
+			op1 = args[0].Int
+		} else {
+			return r, fmt.Errorf("Arg type unknown")
+		}
+		rand.Seed(op1)
+		r.Float = rand.Float64()
+	}
+	return r, nil
+}
+
+func Least(args []value.Value) (value.Value, error) {
+	if len(args) == 0 {
+		return value.Value{}, fmt.Errorf("Args length is mismatch")
+	}
+	if len(args) == 1 {
+		return args[0], nil
+	}
+	idx := 0
+	var mv float64
+	if args[0].Type == value.INTEGER {
+		mv = float64(args[0].Int)
+	} else if args[0].Type == value.FLOAT {
+		mv = args[0].Float
+	}
+
+	for n, v := range args {
+		if n == 0 {
+			continue
+		}
+		var f float64
+		switch v.Type {
+		case value.INTEGER:
+			f = float64(v.Int)
+		case value.FLOAT:
+			f = v.Float
+		default:
+			return value.Value{}, fmt.Errorf("Unknown args")
+		}
+		if f < mv {
+			idx = n
+		}
+	}
+	return args[idx], nil
+}
+
+func Greatest(args []value.Value) (value.Value, error) {
+	if len(args) == 0 {
+		return value.Value{}, fmt.Errorf("Args length is mismatch")
+	}
+	if len(args) == 1 {
+		return args[0], nil
+	}
+	idx := 0
+	var mv float64
+	if args[0].Type == value.INTEGER {
+		mv = float64(args[0].Int)
+	} else if args[0].Type == value.FLOAT {
+		mv = args[0].Float
+	}
+
+	for n, v := range args {
+		if n == 0 {
+			continue
+		}
+		var f float64
+		switch v.Type {
+		case value.INTEGER:
+			f = float64(v.Int)
+		case value.FLOAT:
+			f = v.Float
+		default:
+			return value.Value{}, fmt.Errorf("Unknown args")
+		}
+		if f > mv {
+			idx = n
+		}
+	}
+	return args[idx], nil
 }

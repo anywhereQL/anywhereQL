@@ -9,6 +9,7 @@ import (
 type CallFunction func([]value.Value) (value.Value, error)
 
 var funcs = map[string]CallFunction{
+	// Math funcs
 	"abs":      Abs,
 	"sign":     Sign,
 	"sgn":      Sign,
@@ -33,6 +34,12 @@ var funcs = map[string]CallFunction{
 	"atan":     Atan,
 	"atan2":    Atan2,
 	"cot":      Cot,
+	"degrees":  Degrees,
+	"radians":  Radians,
+	"pi":       Pi,
+	"rand":     Rand,
+	"greatest": Greatest,
+	"least":    Least,
 }
 
 func LookupFunction(name string) CallFunction {

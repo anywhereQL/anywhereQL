@@ -148,6 +148,9 @@ func (p *parser) parseFunctionCallExpr() (*ast.Expression, error) {
 
 	for {
 		p.readToken()
+		if p.currentToken.Type == token.S_RPAREN {
+			break
+		}
 		ex, err := p.parseExpression(LOWEST)
 		if err != nil {
 			return expr, err
