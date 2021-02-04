@@ -109,7 +109,7 @@ func (repl *REPL) Start(in io.ReadCloser, out io.Writer) error {
 }
 
 func (repl *REPL) parseCommand(line string, out io.Writer) bool {
-	parsedLine := strings.SplitN(line, " ", 2)
+	parsedLine := strings.SplitN(strings.Trim(line, "\n"), " ", 2)
 	cmd := parsedLine[0]
 	switch strings.ToLower(cmd) {
 	case ".exit":
