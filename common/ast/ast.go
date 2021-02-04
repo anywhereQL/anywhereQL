@@ -36,8 +36,21 @@ type Literal struct {
 	Numeric *Numeric
 }
 
+type NumericType int
+
+const (
+	_ NumericType = iota
+	N_INT
+	N_FLOAT
+)
+
 type Numeric struct {
+	Type     NumericType
 	Integral int64
+	Float    float64
+	PartI    int64
+	PartF    int64
+	FDigit   int
 }
 
 type OperatorType int

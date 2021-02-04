@@ -6,6 +6,7 @@ import (
 
 	"github.com/anywhereQL/anywhereQL/common/ast"
 	"github.com/anywhereQL/anywhereQL/common/token"
+	"github.com/anywhereQL/anywhereQL/common/value"
 )
 
 func (p *parser) parseExpression(precedence int) (*ast.Expression, error) {
@@ -39,8 +40,20 @@ func (p *parser) parseNumber() (*ast.Expression, error) {
 		Literal: &ast.Literal{
 			Numeric: &ast.Numeric{
 				Integral: p.currentToken.Value.Int,
+				Float:    p.currentToken.Value.Float,
+				FDigit:   p.currentToken.Value.FDigit,
+				PartF:    p.currentToken.Value.PartF,
+				PartI:    p.currentToken.Value.PartI,
 			},
 		},
+	}
+	switch p.currentToken.Value.Type {
+	case value.INTEGER:
+		expr.Literal.Numeric.Type = ast.N_INT
+	case value.FLOAT:
+		expr.Literal.Numeric.Type = ast.N_FLOAT
+	default:
+		return expr, fmt.Errorf("Unknwon Value Type: %s", p.currentToken.Type)
 	}
 	return expr, nil
 }
@@ -113,8 +126,9 @@ func (p *parser) parsePrefixExpr() (*ast.Expression, error) {
 		return expr, fmt.Errorf("Unknwon Prefix Operator: %s", p.currentToken.Literal)
 	}
 
+	pre := p.getCurrentTokenPrecedence()
 	p.readToken()
-	ex, err := p.parseExpression(LOWEST)
+	ex, err := p.parseExpression(pre)
 	if err != nil {
 		return expr, err
 	}
@@ -130,16 +144,25 @@ func (p *parser) parseFunctionCallExpr() (*ast.Expression, error) {
 	}
 
 	expr.FunctionCall.Name = strings.ToUpper(p.currentToken.Literal)
+	p.readToken()
 
 	for {
 		p.readToken()
-		ex, err := p.parseExpression(LOWEST)
-		if err != nil {
-			return expr, nil
-		}
-		expr.FunctionCall.Args = append(expr.FunctionCall.Args, *ex)
 		if p.currentToken.Type == token.S_RPAREN {
 			break
+		}
+		ex, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return expr, err
+		}
+		expr.FunctionCall.Args = append(expr.FunctionCall.Args, *ex)
+
+		p.readToken()
+		if p.currentToken.Type == token.S_RPAREN {
+			break
+		}
+		if p.currentToken.Type != token.S_COMMA {
+			return expr, fmt.Errorf("Unknwon Token must be COMMA or RPAREN, but %s", p.currentToken.Literal)
 		}
 	}
 	return expr, nil
