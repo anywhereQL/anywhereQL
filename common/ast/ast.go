@@ -30,6 +30,7 @@ type Expression struct {
 	UnaryOperation  *UnaryOpe
 	BinaryOperation *BinaryOpe
 	FunctionCall    *FunctionCall
+	Column          *Column
 }
 
 type Literal struct {

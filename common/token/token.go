@@ -28,6 +28,9 @@ const (
 	S_LPAREN
 	S_RPAREN
 	S_COMMA
+	S_QUOTE
+	S_DQUOTE
+	S_PERIOD
 )
 
 func (t Type) String() string {
@@ -51,23 +54,29 @@ func (t Type) String() string {
 		return "Keyword (NULL)"
 
 	case S_PLUS:
-		return "Symbol: +"
+		return "Symbol (+)"
 	case S_MINUS:
-		return "Symbol: -"
+		return "Symbol (-)"
 	case S_ASTERISK:
-		return "Symbol: *"
+		return "Symbol (*)"
 	case S_SOLIDAS:
-		return "Symbol: /"
+		return "Symbol (/)"
 	case S_PERCENT:
-		return "Symbol: %"
+		return "Symbol (%)"
 	case S_SEMICOLON:
-		return "Symbol: ;"
+		return "Symbol (;)"
 	case S_LPAREN:
-		return "Symbol: ("
+		return "Symbol (()"
 	case S_RPAREN:
-		return "Symbol: )"
+		return "Symbol ())"
 	case S_COMMA:
-		return "Symbol: ,"
+		return "Symbol (,)"
+	case S_QUOTE:
+		return "Symbol (')"
+	case S_DQUOTE:
+		return "Symbol (\")"
+	case S_PERIOD:
+		return "Symbol (.)"
 
 	default:
 		return "Error!! Unknown Token Type"

@@ -108,6 +108,17 @@ func translateExpression(expr *ast.Expression) []vm.VMCode {
 		codes = append(codes, vm.VMCode{Operator: vm.PUSH, Operand1: value.Value{Type: value.INTEGER, Int: int64(len(expr.FunctionCall.Args))}})
 		codes = append(codes, vm.VMCode{Operator: vm.CALL, Operand1: value.Value{Type: value.STRING, String: expr.FunctionCall.Name}})
 		return codes
+	} else if expr.Column != nil {
+		v := value.Value{
+			Type: value.COLUMN,
+			Column: value.Column{
+				Column: expr.Column.Column,
+				Table:  expr.Column.Table,
+				DB:     expr.Column.DB,
+				Schema: expr.Column.Schema,
+			},
+		}
+		codes = append(codes, vm.VMCode{Operator: vm.NA, Operand1: v})
 	}
 	return codes
 }

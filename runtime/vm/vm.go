@@ -11,6 +11,7 @@ type OpeType int
 
 const (
 	_ OpeType = iota
+	NA
 	PUSH
 	POP
 	ADD
@@ -24,6 +25,8 @@ const (
 
 func (o OpeType) String() string {
 	switch o {
+	case NA:
+		return "Not impliement"
 	case PUSH:
 		return "PUSH"
 	case POP:
@@ -42,6 +45,10 @@ func (o OpeType) String() string {
 		return "CALL"
 	case STORE:
 		return "STORE"
+	case READ:
+		return "READ"
+	case WRITE:
+		return "WRITE"
 	default:
 		return "Unknwon Operation"
 	}
@@ -301,6 +308,8 @@ func Run(codes []VMCode) ([]value.Value, error) {
 				return []value.Value{}, err
 			}
 			cols = append(cols, v)
+		case NA:
+			panic("")
 		}
 	}
 	return cols, nil

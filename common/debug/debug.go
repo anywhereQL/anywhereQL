@@ -73,4 +73,18 @@ func printExpression(out io.Writer, sep string, expr *ast.Expression) {
 			fmt.Fprintf(out, "%s%s", sep, expr.Literal.String.Value)
 		}
 	}
+	if expr.Column != nil {
+		if expr.Column.Schema != "" {
+			fmt.Fprintf(out, "%s:Schema: %s", sep, expr.Column.Schema)
+		}
+		if expr.Column.DB != "" {
+			fmt.Fprintf(out, "%s:DB: %s", sep, expr.Column.DB)
+		}
+		if expr.Column.Table != "" {
+			fmt.Fprintf(out, "%s:Table: %s", sep, expr.Column.Table)
+		}
+		if expr.Column.Column != "" {
+			fmt.Fprintf(out, "%s:Column: %s", sep, expr.Column.Column)
+		}
+	}
 }
