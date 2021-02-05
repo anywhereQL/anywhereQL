@@ -129,17 +129,80 @@ func TestLexer(t *testing.T) {
 			},
 			isError: false,
 		},
+		{
+			input: "SELECT \"test\"",
+			expected: token.Tokens{
+				{
+					Type:    token.K_SELECT,
+					Literal: "SELECT",
+				},
+				{
+					Type:    token.STRING,
+					Literal: "test",
+					Value: value.Value{
+						Type:   value.STRING,
+						String: "test",
+					},
+				},
+				{
+					Type: token.EOS,
+				},
+			},
+			isError: false,
+		},
+		{
+			input: "SELECT 'test'",
+			expected: token.Tokens{
+				{
+					Type:    token.K_SELECT,
+					Literal: "SELECT",
+				},
+				{
+					Type:    token.STRING,
+					Literal: "test",
+					Value: value.Value{
+						Type:   value.STRING,
+						String: "test",
+					},
+				},
+				{
+					Type: token.EOS,
+				},
+			},
+			isError: false,
+		},
+		{
+			input: "SELECT 'te''st'",
+			expected: token.Tokens{
+				{
+					Type:    token.K_SELECT,
+					Literal: "SELECT",
+				},
+				{
+					Type:    token.STRING,
+					Literal: "te'st",
+					Value: value.Value{
+						Type:   value.STRING,
+						String: "test",
+					},
+				},
+				{
+					Type: token.EOS,
+				},
+			},
+			isError: false,
+		},
 	}
 
 	for tn, tc := range testCases {
 		tokens := Lex(tc.input)
 		if len(tc.expected) != len(tokens) {
-			t.Fatalf("[%d] Length is mismatcg", tn)
+			t.Fatalf("[%d] Length is mismatcg %v", tn, tokens)
 		}
 		for n, tk := range tokens {
 			expected := tc.expected.GetN(n)
 			if expected.Type != tk.Type {
-				t.Fatalf("[%d] Token Type is mismatch %s:%s", tn, expected.Type, tk.Type)
+				t.Fatalf("[%d] Token Type is mismatch %s:%s (%s)", tn, expected.Type, tk.Type, tc.input)
 			}
 			if expected.Literal != tk.Literal {
 				t.Fatalf("[%d] Token Literal is mismatch", tn)

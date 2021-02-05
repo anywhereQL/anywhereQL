@@ -69,6 +69,8 @@ func printExpression(out io.Writer, sep string, expr *ast.Expression) {
 			case ast.N_FLOAT:
 				fmt.Fprintf(out, "%s%f\n", sep, expr.Literal.Numeric.Float)
 			}
+		} else if expr.Literal.String != nil {
+			fmt.Fprintf(out, "%s%s", sep, expr.Literal.String.Value)
 		}
 	}
 }

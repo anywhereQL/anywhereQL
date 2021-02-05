@@ -8,7 +8,7 @@ func IsDigit(ch rune) bool {
 }
 
 func IsSymbol(ch rune) bool {
-	if ch == ';' || ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%' || ch == '(' || ch == ')' || ch == ',' {
+	if ch == ';' || ch == '+' || ch == '-' || ch == '*' || ch == '/' || ch == '%' || ch == '(' || ch == ')' || ch == ',' || ch == '"' || ch == '\'' {
 		return true
 	}
 	return false
