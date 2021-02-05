@@ -47,12 +47,16 @@ func translateExpression(expr *ast.Expression) []vm.VMCode {
 				v.PartI = expr.Literal.Numeric.PartI
 				v.FDigit = expr.Literal.Numeric.FDigit
 			}
-			c := vm.VMCode{
-				Operator: vm.PUSH,
-				Operand1: v,
-			}
-			codes = append(codes, c)
+		} else if expr.Literal.String != nil {
+			v.Type = value.STRING
+			v.String = expr.Literal.String.Value
 		}
+
+		c := vm.VMCode{
+			Operator: vm.PUSH,
+			Operand1: v,
+		}
+		codes = append(codes, c)
 		return codes
 	} else if expr.BinaryOperation != nil {
 		cl := translateExpression(expr.BinaryOperation.Left)

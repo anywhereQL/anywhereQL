@@ -34,6 +34,11 @@ type Expression struct {
 
 type Literal struct {
 	Numeric *Numeric
+	String  *String
+}
+
+type String struct {
+	Value string
 }
 
 type NumericType int

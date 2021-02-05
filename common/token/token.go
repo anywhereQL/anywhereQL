@@ -14,6 +14,7 @@ const (
 	EOS
 	IDENT
 	NUMBER
+	STRING
 
 	K_SELECT
 	K_NULL
@@ -41,6 +42,8 @@ func (t Type) String() string {
 		return "IDENT Token"
 	case NUMBER:
 		return "NUMBER Token"
+	case STRING:
+		return "STRING Token"
 
 	case K_SELECT:
 		return "Keyword (SELECT)"

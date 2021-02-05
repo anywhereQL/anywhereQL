@@ -167,3 +167,14 @@ func (p *parser) parseFunctionCallExpr() (*ast.Expression, error) {
 	}
 	return expr, nil
 }
+
+func (p *parser) parseString() (*ast.Expression, error) {
+	expr := &ast.Expression{
+		Literal: &ast.Literal{
+			String: &ast.String{
+				Value: p.currentToken.Value.String,
+			},
+		},
+	}
+	return expr, nil
+}
