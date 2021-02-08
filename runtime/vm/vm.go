@@ -45,10 +45,6 @@ func (o OpeType) String() string {
 		return "CALL"
 	case STORE:
 		return "STORE"
-	case READ:
-		return "READ"
-	case WRITE:
-		return "WRITE"
 	default:
 		return "Unknwon Operation"
 	}
