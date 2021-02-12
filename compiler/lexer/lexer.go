@@ -175,37 +175,33 @@ func (l *lexer) readNumber() string {
 
 func (l *lexer) lookupSymbol() (string, token.Type) {
 	ch := l.getCurrentChar()
-	var v string
 	var t token.Type
+	v := string(ch)
 	switch ch {
 	case ';':
 		t = token.S_SEMICOLON
-		v = string(ch)
 	case '+':
 		t = token.S_PLUS
-		v = string(ch)
 	case '-':
 		t = token.S_MINUS
-		v = string(ch)
 	case '*':
 		t = token.S_ASTERISK
-		v = string(ch)
 	case '/':
 		t = token.S_SOLIDAS
-		v = string(ch)
 	case '%':
 		t = token.S_PERCENT
-		v = string(ch)
 	case '(':
 		t = token.S_LPAREN
-		v = string(ch)
 	case ')':
 		t = token.S_RPAREN
-		v = string(ch)
 	case ',':
 		t = token.S_COMMA
-		v = string(ch)
-
+	case '"':
+		t = token.S_DQUOTE
+	case '\'':
+		t = token.S_QUOTE
+	case '.':
+		t = token.S_PERIOD
 	default:
 		t = token.UNKNOWN
 		v = ""

@@ -18,6 +18,7 @@ const (
 	DECIMAL
 	STRING
 	NULL
+	COLUMN
 )
 
 func (t Type) String() string {
@@ -36,6 +37,8 @@ func (t Type) String() string {
 		return "String"
 	case NULL:
 		return "Null"
+	case COLUMN:
+		return "Column"
 	default:
 		return "Error Unknwo value type"
 	}
@@ -46,10 +49,20 @@ type Value struct {
 	Int    int64
 	Float  float64
 	String string
+	Column Column
 
 	PartI  int64
 	PartF  int64
 	FDigit int
+}
+
+type Column struct {
+	Column  string
+	TableID string
+}
+
+type Table struct {
+	TableID string
 }
 
 func Convert(s string) (Value, error) {

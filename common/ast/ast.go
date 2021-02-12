@@ -30,6 +30,7 @@ type Expression struct {
 	UnaryOperation  *UnaryOpe
 	BinaryOperation *BinaryOpe
 	FunctionCall    *FunctionCall
+	Column          *Column
 }
 
 type Literal struct {
@@ -112,14 +113,12 @@ type FunctionCall struct {
 
 type Column struct {
 	Column string
-	Table  string
-	DB     string
-	Schema string
+	Table  Table
 }
 
 type Table struct {
+	ID     string
 	Table  string
 	DB     string
 	Schema string
-	Aslias string
 }
