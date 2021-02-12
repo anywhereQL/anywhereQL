@@ -74,8 +74,15 @@ func (l *lexer) tokenize() token.Tokens {
 func (l *lexer) findToken() (token.Token, error) {
 	ch := l.getCurrentChar()
 	if helper.IsSymbol(ch) {
-		v, t := l.lookupSymbol()
-		return token.Token{Type: t, Literal: v}, nil
+		switch ch {
+		case '"', '\'':
+			v := l.readString(ch)
+			val := value.Value{Type: value.STRING, String: v}
+			return token.Token{Type: token.STRING, Literal: v, Value: val}, nil
+		default:
+			v, t := l.lookupSymbol()
+			return token.Token{Type: t, Literal: v}, nil
+		}
 	} else if helper.IsDigit(ch) || (ch == '.' && helper.IsDigit(l.getNextChar())) {
 		v := l.readNumber()
 		val, err := value.Convert(v)
@@ -103,6 +110,26 @@ func (l *lexer) findToken() (token.Token, error) {
 			}, nil
 		}
 	}
+}
+
+func (l *lexer) readString(quote rune) string {
+	v := []rune("")
+	l.readChar()
+	for {
+		ch := l.getCurrentChar()
+		if ch == 0 || ch == '\n' {
+			break
+		}
+		if ch == quote {
+			l.readChar()
+			if l.getCurrentChar() != quote {
+				break
+			}
+		}
+		v = append(v, ch)
+		l.readChar()
+	}
+	return string(v)
 }
 
 func (l *lexer) readIdent() string {
@@ -148,37 +175,33 @@ func (l *lexer) readNumber() string {
 
 func (l *lexer) lookupSymbol() (string, token.Type) {
 	ch := l.getCurrentChar()
-	var v string
 	var t token.Type
+	v := string(ch)
 	switch ch {
 	case ';':
 		t = token.S_SEMICOLON
-		v = string(ch)
 	case '+':
 		t = token.S_PLUS
-		v = string(ch)
 	case '-':
 		t = token.S_MINUS
-		v = string(ch)
 	case '*':
 		t = token.S_ASTERISK
-		v = string(ch)
 	case '/':
 		t = token.S_SOLIDAS
-		v = string(ch)
 	case '%':
 		t = token.S_PERCENT
-		v = string(ch)
 	case '(':
 		t = token.S_LPAREN
-		v = string(ch)
 	case ')':
 		t = token.S_RPAREN
-		v = string(ch)
 	case ',':
 		t = token.S_COMMA
-		v = string(ch)
-
+	case '"':
+		t = token.S_DQUOTE
+	case '\'':
+		t = token.S_QUOTE
+	case '.':
+		t = token.S_PERIOD
 	default:
 		t = token.UNKNOWN
 		v = ""

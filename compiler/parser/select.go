@@ -19,6 +19,13 @@ func (p *parser) parseSELECTStatement() (*ast.SELECTStatement, error) {
 	} else {
 		return statement, fmt.Errorf("SELECT missing")
 	}
+	if p.currentToken.Type == token.K_FROM {
+		fromClause, err := p.parseFROMClause()
+		if err != nil {
+			return statement, err
+		}
+		statement.FROM = fromClause
+	}
 	return statement, nil
 }
 
@@ -39,7 +46,7 @@ func (p *parser) parseSelectColumns() ([]ast.SelectColumn, error) {
 	loop := true
 	for {
 		switch p.currentToken.Type {
-		case token.EOS, token.S_SEMICOLON:
+		case token.EOS, token.S_SEMICOLON, token.K_FROM:
 			loop = false
 			break
 		case token.S_COMMA:

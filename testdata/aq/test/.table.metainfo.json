@@ -1,0 +1,14 @@
+{
+  "file": "test.tsv",
+  "name": "test",
+  "columns": [
+    {
+      "name": "col1",
+      "type": "INT"
+    },
+    {
+      "name": "col2",
+      "type": "INT"
+    }
+  ]
+}
