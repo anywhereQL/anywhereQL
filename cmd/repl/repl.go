@@ -86,6 +86,12 @@ func (repl *REPL) Start(in io.ReadCloser, out io.Writer) error {
 						fmt.Fprintf(out, "%s", col.String)
 					case value.NULL:
 						fmt.Fprintf(out, "NULL")
+					case value.BOOL:
+						if col.Bool.True {
+							fmt.Fprintf(out, "TRUE")
+						} else if col.Bool.False {
+							fmt.Fprintf(out, "FALSE")
+						}
 					}
 					if i != (len(line) - 1) {
 						fmt.Fprintf(out, ",")

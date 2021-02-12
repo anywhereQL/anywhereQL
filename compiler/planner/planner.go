@@ -31,6 +31,13 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 		} else if expr.Literal.String != nil {
 			v.Type = value.STRING
 			v.String = expr.Literal.String.Value
+		} else if expr.Literal.Bool != nil {
+			v.Type = value.BOOL
+			if expr.Literal.Bool.True {
+				v.Bool.True = true
+			} else if expr.Literal.Bool.False {
+				v.Bool.False = true
+			}
 		}
 
 		c := vm.ExprVMCode{

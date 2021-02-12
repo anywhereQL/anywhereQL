@@ -36,6 +36,13 @@ type Expression struct {
 type Literal struct {
 	Numeric *Numeric
 	String  *String
+	Bool    *Bool
+}
+
+type Bool struct {
+	True    bool
+	False   bool
+	Unknown bool
 }
 
 type String struct {

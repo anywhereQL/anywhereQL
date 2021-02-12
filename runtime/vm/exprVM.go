@@ -75,6 +75,12 @@ func (c ExprVMCode) String() string {
 			s = fmt.Sprintf("%s %s", s, c.Operand1.String)
 		case value.COLUMN:
 			s = fmt.Sprintf("%s %s.%s", s, c.Operand1.Column.TableID, c.Operand1.Column.Column)
+		case value.BOOL:
+			if c.Operand1.Bool.True {
+				s = fmt.Sprintf("%s TRUE", s)
+			} else {
+				s = fmt.Sprintf("%s FALSE", s)
+			}
 		}
 	}
 
@@ -86,6 +92,14 @@ func (c ExprVMCode) String() string {
 			s = fmt.Sprintf("%s %f", s, c.Operand2.Float)
 		case value.STRING:
 			s = fmt.Sprintf("%s %s", s, c.Operand2.String)
+		case value.COLUMN:
+			s = fmt.Sprintf("%s %s.%s", s, c.Operand1.Column.TableID, c.Operand1.Column.Column)
+		case value.BOOL:
+			if c.Operand2.Bool.True {
+				s = fmt.Sprintf("%s TRUE", s)
+			} else {
+				s = fmt.Sprintf("%s FALSE", s)
+			}
 		}
 	}
 

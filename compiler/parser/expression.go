@@ -213,3 +213,17 @@ func (p *parser) parseColumnExpr() (*ast.Expression, error) {
 
 	return expr, nil
 }
+
+func (p *parser) parseBoolExpr() (*ast.Expression, error) {
+	expr := &ast.Expression{
+		Literal: &ast.Literal{
+			Bool: &ast.Bool{},
+		},
+	}
+	if p.currentToken.Type == token.K_TRUE {
+		expr.Literal.Bool.True = true
+	} else if p.currentToken.Type == token.K_FALSE {
+		expr.Literal.Bool.False = true
+	}
+	return expr, nil
+}

@@ -63,6 +63,8 @@ func new(tokens token.Tokens) *parser {
 	p.unaryParseFunc[token.S_MINUS] = p.parsePrefixExpr
 	p.unaryParseFunc[token.IDENT] = p.parseIdent
 	p.unaryParseFunc[token.STRING] = p.parseString
+	p.unaryParseFunc[token.K_TRUE] = p.parseBoolExpr
+	p.unaryParseFunc[token.K_FALSE] = p.parseBoolExpr
 
 	p.binaryParseFunc[token.S_PLUS] = p.parseBinaryExpr
 	p.binaryParseFunc[token.S_MINUS] = p.parseBinaryExpr
