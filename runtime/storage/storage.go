@@ -7,6 +7,10 @@ import (
 type Engine interface {
 	GetEngineName() string
 	GetDatabase() map[string]DB
+	GetTableValues(db, table string) ([]map[string]value.Value, error)
+	GetValue(db, table, column string, line int) (value.Value, error)
+	GetColumns(db, table string) []string
+	WriteTable(db, table string, values []map[string]value.Value) error
 }
 
 type DB struct {

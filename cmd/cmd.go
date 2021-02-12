@@ -9,6 +9,8 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/anywhereQL/anywhereQL/cmd/repl"
+	"github.com/anywhereQL/anywhereQL/common/config"
+	"github.com/anywhereQL/anywhereQL/common/logger"
 	"github.com/anywhereQL/anywhereQL/runtime/storage"
 	"github.com/anywhereQL/anywhereQL/runtime/storage/aq"
 )
@@ -60,6 +62,9 @@ func initConfig() {
 	}
 	viper.AutomaticEnv()
 
+	viper.SetDefault("default.Schema", "AQDB")
+	viper.SetDefault("default.Database", "DATA")
+
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			// Config file not found; ignore error if desired
@@ -70,10 +75,13 @@ func initConfig() {
 }
 
 func initializeAnywhereQL(cmd *cobra.Command, args []string) error {
+	logger.Infof("Initializing anywhereQL")
 	se := storage.GetInstance()
-	config := viper.AllSettings()
-	if _, exists := config["dbs"]; exists {
-		for _, v := range config["dbs"].([]interface{}) {
+
+	conf := viper.AllSettings()
+
+	if _, exists := conf["dbs"]; exists {
+		for _, v := range conf["dbs"].([]interface{}) {
 			eng := v.(map[string]interface{})["Engine"].(string)
 			sch := v.(map[string]interface{})["Schema"].(string)
 			path := v.(map[string]interface{})["Path"].([]interface{})
@@ -91,5 +99,10 @@ func initializeAnywhereQL(cmd *cobra.Command, args []string) error {
 			}
 		}
 	}
+
+	config.DBConfig.DefaultSchema = viper.GetString("default.Schema")
+	config.DBConfig.DefaultDB = viper.GetString("default.Database")
+
+	logger.Infof("Initializing Done")
 	return nil
 }

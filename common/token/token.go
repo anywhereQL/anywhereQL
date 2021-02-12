@@ -18,6 +18,7 @@ const (
 
 	K_SELECT
 	K_NULL
+	K_FROM
 
 	S_PLUS
 	S_MINUS
@@ -52,6 +53,8 @@ func (t Type) String() string {
 		return "Keyword (SELECT)"
 	case K_NULL:
 		return "Keyword (NULL)"
+	case K_FROM:
+		return "Keyword (FROM)"
 
 	case S_PLUS:
 		return "Symbol (+)"
@@ -104,6 +107,8 @@ func LookupKeyword(s string) (bool, Type) {
 		return true, K_SELECT
 	case "NULL":
 		return true, K_NULL
+	case "FROM":
+		return true, K_FROM
 	default:
 		return false, UNKNOWN
 	}

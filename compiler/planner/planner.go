@@ -6,33 +6,14 @@ import (
 	"github.com/anywhereQL/anywhereQL/runtime/vm"
 )
 
-func Translate(a *ast.AST) []vm.VMCode {
-	codes := []vm.VMCode{}
-
-	for _, sql := range a.SQL {
-		for _, col := range sql.SELECTStatement.SELECT.SelectColumns {
-			c := translateSelectColumn(col)
-			codes = append(codes, c...)
-
-			s := vm.VMCode{
-				Operator: vm.STORE,
-				Operand1: value.Value{
-					Type: value.NA,
-				},
-			}
-			codes = append(codes, s)
-		}
-	}
+func Translate(expr *ast.Expression) []vm.ExprVMCode {
+	codes := translateExpr(expr)
+	codes = append(codes, vm.ExprVMCode{Operator: vm.STORE})
 	return codes
 }
 
-func translateSelectColumn(c ast.SelectColumn) []vm.VMCode {
-	codes := translateExpression(c.Expression)
-	return codes
-}
-
-func translateExpression(expr *ast.Expression) []vm.VMCode {
-	codes := []vm.VMCode{}
+func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
+	codes := []vm.ExprVMCode{}
 	v := value.Value{}
 	if expr.Literal != nil {
 		if expr.Literal.Numeric != nil {
@@ -52,73 +33,67 @@ func translateExpression(expr *ast.Expression) []vm.VMCode {
 			v.String = expr.Literal.String.Value
 		}
 
-		c := vm.VMCode{
+		c := vm.ExprVMCode{
 			Operator: vm.PUSH,
 			Operand1: v,
 		}
 		codes = append(codes, c)
-		return codes
 	} else if expr.BinaryOperation != nil {
-		cl := translateExpression(expr.BinaryOperation.Left)
+		cl := translateExpr(expr.BinaryOperation.Left)
 		codes = append(codes, cl...)
-		cr := translateExpression(expr.BinaryOperation.Right)
+		cr := translateExpr(expr.BinaryOperation.Right)
 		codes = append(codes, cr...)
 
-		var c vm.VMCode
+		var c vm.ExprVMCode
 		switch expr.BinaryOperation.Operator {
 		case ast.B_PLUS:
-			c = vm.VMCode{
+			c = vm.ExprVMCode{
 				Operator: vm.ADD,
 			}
 		case ast.B_MINUS:
-			c = vm.VMCode{
+			c = vm.ExprVMCode{
 				Operator: vm.SUB,
 			}
 		case ast.B_ASTERISK:
-			c = vm.VMCode{
+			c = vm.ExprVMCode{
 				Operator: vm.MUL,
 			}
 		case ast.B_SOLIDAS:
-			c = vm.VMCode{
+			c = vm.ExprVMCode{
 				Operator: vm.DIV,
 			}
 		case ast.B_PERCENT:
-			c = vm.VMCode{
+			c = vm.ExprVMCode{
 				Operator: vm.MOD,
 			}
 		default:
 			return codes
 		}
 		codes = append(codes, c)
-		return codes
 	} else if expr.UnaryOperation != nil {
-		c := translateExpression(expr.UnaryOperation.Expr)
+		c := translateExpr(expr.UnaryOperation.Expr)
 		codes = append(codes, c...)
 		switch expr.UnaryOperation.Operator {
 		case ast.U_MINUS:
-			codes = append(codes, vm.VMCode{Operator: vm.PUSH, Operand1: value.Value{Type: value.INTEGER, Int: -1}})
-			codes = append(codes, vm.VMCode{Operator: vm.MUL})
+			codes = append(codes, vm.ExprVMCode{Operator: vm.PUSH, Operand1: value.Value{Type: value.INTEGER, Int: -1}})
+			codes = append(codes, vm.ExprVMCode{Operator: vm.MUL})
 		}
-		return codes
 	} else if expr.FunctionCall != nil {
 		for _, arg := range expr.FunctionCall.Args {
-			c := translateExpression(&arg)
+			c := translateExpr(&arg)
 			codes = append(codes, c...)
 		}
-		codes = append(codes, vm.VMCode{Operator: vm.PUSH, Operand1: value.Value{Type: value.INTEGER, Int: int64(len(expr.FunctionCall.Args))}})
-		codes = append(codes, vm.VMCode{Operator: vm.CALL, Operand1: value.Value{Type: value.STRING, String: expr.FunctionCall.Name}})
-		return codes
+		codes = append(codes, vm.ExprVMCode{Operator: vm.PUSH, Operand1: value.Value{Type: value.INTEGER, Int: int64(len(expr.FunctionCall.Args))}})
+		codes = append(codes, vm.ExprVMCode{Operator: vm.CALL, Operand1: value.Value{Type: value.STRING, String: expr.FunctionCall.Name}})
 	} else if expr.Column != nil {
 		v := value.Value{
 			Type: value.COLUMN,
 			Column: value.Column{
-				Column: expr.Column.Column,
-				Table:  expr.Column.Table,
-				DB:     expr.Column.DB,
-				Schema: expr.Column.Schema,
+				Column:  expr.Column.Column,
+				TableID: expr.Column.Table.ID,
 			},
 		}
-		codes = append(codes, vm.VMCode{Operator: vm.NA, Operand1: v})
+		codes = append(codes, vm.ExprVMCode{Operator: vm.PICK, Operand1: v})
 	}
 	return codes
 }

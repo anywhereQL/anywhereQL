@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/anywhereQL/anywhereQL/common/logger"
 	"github.com/anywhereQL/anywhereQL/common/value"
 	"github.com/anywhereQL/anywhereQL/runtime/storage"
 )
@@ -139,9 +140,9 @@ func (e *Engine) parseDefinition(def string) {
 	}
 }
 
-func (e *Engine) GetColumnValues(db, table string) ([]map[string]value.Value, error) {
+func (e *Engine) GetTableValues(db, table string) ([]map[string]value.Value, error) {
 	ret := []map[string]value.Value{}
-
+	logger.Tracef("%s", e.DB[db].Tables[table].Path)
 	fp, err := os.Open(e.DB[db].Tables[table].Path)
 	if err != nil {
 		return nil, err
@@ -175,6 +176,10 @@ func (e *Engine) GetColumnValues(db, table string) ([]map[string]value.Value, er
 	return ret, nil
 }
 
+func (e *Engine) GetValue(db, table, column string, line int) (value.Value, error) {
+	return value.Value{}, nil
+}
+
 func (e *Engine) parseColumn(db, table string, cols []string) ([]value.Value, error) {
 	ret := []value.Value{}
 	for n, col := range cols {
@@ -203,4 +208,16 @@ func (e *Engine) parseColumn(db, table string, cols []string) ([]value.Value, er
 		ret = append(ret, val)
 	}
 	return ret, nil
+}
+
+func (e *Engine) WriteTable(db, table string, values []map[string]value.Value) error {
+	return fmt.Errorf("Not impli")
+}
+
+func (e *Engine) GetColumns(db, table string) []string {
+	cols := []string{}
+	for _, c := range e.DB[db].Tables[table].Columns {
+		cols = append(cols, c.Name)
+	}
+	return cols
 }

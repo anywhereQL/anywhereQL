@@ -21,7 +21,7 @@ func (p *parser) parseExpression(precedence int) (*ast.Expression, error) {
 		return expr, err
 	}
 
-	for p.getNextToken().Type != token.EOS && precedence < p.getNextTokenPrecedence() {
+	for !(p.getNextToken().Type == token.EOS || p.getNextToken().Type == token.K_FROM) && precedence < p.getNextTokenPrecedence() {
 		binary, exists := p.binaryParseFunc[p.getNextToken().Type]
 		if !exists {
 			return left, nil
@@ -62,10 +62,7 @@ func (p *parser) parseIdent() (*ast.Expression, error) {
 	if p.getNextToken().Type == token.S_LPAREN {
 		return p.parseFunctionCallExpr()
 	}
-	if p.getNextToken().Type == token.S_PERIOD {
-		return p.parseColumnExpr()
-	}
-	return &ast.Expression{}, fmt.Errorf("Unknown Ident: %s", p.currentToken.Literal)
+	return p.parseColumnExpr()
 }
 
 func (p *parser) parseBinaryExpr(left *ast.Expression) (*ast.Expression, error) {
@@ -190,28 +187,25 @@ func (p *parser) parseColumnExpr() (*ast.Expression, error) {
 	for {
 		if p.currentToken.Type == token.IDENT {
 			literal = append(literal, p.currentToken.Literal)
-		} else {
-			break
 		}
-		p.readToken()
-		if p.currentToken.Type != token.S_PERIOD {
+		if p.getNextToken().Type != token.S_PERIOD {
 			break
 		}
 		p.readToken()
 	}
-	if len(literal) > 5 {
+	if len(literal) >= 5 {
 		return expr, fmt.Errorf("Unknown Column Expression")
 	} else if len(literal) == 4 {
-		expr.Column.Schema = literal[0]
-		expr.Column.DB = literal[1]
-		expr.Column.Table = literal[2]
+		expr.Column.Table.Schema = literal[0]
+		expr.Column.Table.DB = literal[1]
+		expr.Column.Table.Table = literal[2]
 		expr.Column.Column = literal[3]
 	} else if len(literal) == 3 {
-		expr.Column.DB = literal[0]
-		expr.Column.Table = literal[1]
+		expr.Column.Table.DB = literal[0]
+		expr.Column.Table.Table = literal[1]
 		expr.Column.Column = literal[2]
 	} else if len(literal) == 2 {
-		expr.Column.Table = literal[0]
+		expr.Column.Table.Table = literal[0]
 		expr.Column.Column = literal[1]
 	} else {
 		expr.Column.Column = literal[0]

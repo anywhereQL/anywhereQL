@@ -10,12 +10,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/anywhereQL/anywhereQL/common/debug"
+	"github.com/anywhereQL/anywhereQL/common/logger"
 	"github.com/anywhereQL/anywhereQL/common/value"
-	"github.com/anywhereQL/anywhereQL/compiler/lexer"
-	"github.com/anywhereQL/anywhereQL/compiler/parser"
-	"github.com/anywhereQL/anywhereQL/compiler/planner"
-	"github.com/anywhereQL/anywhereQL/runtime/vm"
+	"github.com/anywhereQL/anywhereQL/runtime"
 )
 
 const PROMPT = ">>"
@@ -72,38 +69,29 @@ func (repl *REPL) Start(in io.ReadCloser, out io.Writer) error {
 				return nil
 			}
 		} else {
-			tokens := lexer.Lex(line)
-			debug.PrintToken(out, tokens)
-
-			ast, err := parser.Parse(tokens)
+			rt := runtime.New()
+			rs, err := rt.Start(line)
 			if err != nil {
-				fmt.Fprintf(out, "%v", err)
+				logger.Errorf("%#+v", err)
 				continue
 			}
-			debug.PrintAST(out, ast)
-
-			vc := planner.Translate(ast)
-			debug.PrintVC(out, vc)
-
-			rs, err := vm.Run(vc)
-			if err != nil {
-				fmt.Fprintf(out, "%v", err)
-				continue
-			}
-			for i, col := range rs {
-				switch col.Type {
-				case value.INTEGER:
-					fmt.Fprintf(out, "%d", col.Int)
-				case value.FLOAT:
-					fmt.Fprintf(out, "%f", col.Float)
-				case value.STRING:
-					fmt.Fprintf(out, "%s", col.String)
-				case value.NULL:
-					fmt.Fprintf(out, "NULL")
+			for _, line := range rs {
+				for i, col := range line {
+					switch col.Type {
+					case value.INTEGER:
+						fmt.Fprintf(out, "%d", col.Int)
+					case value.FLOAT:
+						fmt.Fprintf(out, "%f", col.Float)
+					case value.STRING:
+						fmt.Fprintf(out, "%s", col.String)
+					case value.NULL:
+						fmt.Fprintf(out, "NULL")
+					}
+					if i != (len(line) - 1) {
+						fmt.Fprintf(out, ",")
+					}
 				}
-				if i != (len(rs) - 1) {
-					fmt.Fprintf(out, ",")
-				}
+				fmt.Fprintf(out, "\n")
 			}
 		}
 		fmt.Fprintf(out, "\n")

@@ -15,7 +15,7 @@ func PrintToken(out io.Writer, tokens token.Tokens) {
 	}
 }
 
-func PrintVC(out io.Writer, vc []vm.VMCode) {
+func PrintExprVC(out io.Writer, vc []vm.ExprVMCode) {
 	for n, c := range vc {
 		fmt.Fprintf(out, "[%d] %s\n", n, c)
 	}
@@ -34,6 +34,7 @@ func printSELECT(out io.Writer, ss *ast.SELECTStatement) {
 		printSELECTColumns(out, ss.SELECT)
 	}
 	if ss.FROM != nil {
+		printFROMClause(out, ss.FROM)
 	}
 }
 
@@ -47,6 +48,10 @@ func printColumn(out io.Writer, col ast.SelectColumn) {
 	if col.Expression != nil {
 		printExpression(out, "", col.Expression)
 	}
+}
+
+func printFROMClause(out io.Writer, from *ast.FROMClause) {
+	printTable(out, from.Table)
 }
 
 func printExpression(out io.Writer, sep string, expr *ast.Expression) {
@@ -74,17 +79,10 @@ func printExpression(out io.Writer, sep string, expr *ast.Expression) {
 		}
 	}
 	if expr.Column != nil {
-		if expr.Column.Schema != "" {
-			fmt.Fprintf(out, "%s:Schema: %s", sep, expr.Column.Schema)
-		}
-		if expr.Column.DB != "" {
-			fmt.Fprintf(out, "%s:DB: %s", sep, expr.Column.DB)
-		}
-		if expr.Column.Table != "" {
-			fmt.Fprintf(out, "%s:Table: %s", sep, expr.Column.Table)
-		}
-		if expr.Column.Column != "" {
-			fmt.Fprintf(out, "%s:Column: %s", sep, expr.Column.Column)
-		}
+		fmt.Fprintf(out, "%sColumn (schema: %s, database: %s, table: %s, column: %s)\n", sep, expr.Column.Table.Schema, expr.Column.Table.DB, expr.Column.Table.Table, expr.Column.Column)
 	}
+}
+
+func printTable(out io.Writer, tbl *ast.Table) {
+	fmt.Fprintf(out, "Table (schema:%s, database: %s, table: %s)\n", tbl.Schema, tbl.DB, tbl.Table)
 }

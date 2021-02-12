@@ -57,10 +57,12 @@ type Value struct {
 }
 
 type Column struct {
-	Column string
-	Table  string
-	DB     string
-	Schema string
+	Column  string
+	TableID string
+}
+
+type Table struct {
+	TableID string
 }
 
 func Convert(s string) (Value, error) {
