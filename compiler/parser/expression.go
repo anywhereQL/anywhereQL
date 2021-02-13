@@ -289,3 +289,41 @@ func (p *parser) parseNullExpr() (*ast.Expression, error) {
 	}
 	return expr, nil
 }
+
+func (p *parser) parseCastExpr() (*ast.Expression, error) {
+	expr := &ast.Expression{
+		Cast: &ast.Cast{},
+	}
+	p.readToken()
+	if p.currentToken.Type != token.S_LPAREN {
+		return nil, fmt.Errorf("Unknown Cast format")
+	}
+	p.readToken()
+	ex, err := p.parseExpression(LOWEST)
+	if err != nil {
+		return nil, err
+	}
+	expr.Cast.Expr = ex
+	p.readToken()
+	if p.currentToken.Type != token.K_AS {
+		return nil, fmt.Errorf("Unknown Cast format")
+	}
+	p.readToken()
+
+	switch p.currentToken.Type {
+	case token.K_INT, token.K_INTEGER:
+		expr.Cast.Type = ast.T_INT
+	case token.K_FLOAT, token.K_DOUBLE:
+		expr.Cast.Type = ast.T_FLOAT
+	case token.K_STRING:
+		expr.Cast.Type = ast.T_STRING
+	default:
+		return nil, fmt.Errorf("Unknown cast type")
+	}
+	p.readToken()
+	if p.currentToken.Type != token.S_RPAREN {
+		return nil, fmt.Errorf("Unknown Cast format")
+	}
+
+	return expr, nil
+}

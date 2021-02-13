@@ -32,6 +32,7 @@ const (
 	AND
 	OR
 	NOT
+	CAST
 )
 
 func (o ExprOpeType) String() string {
@@ -44,7 +45,6 @@ func (o ExprOpeType) String() string {
 		return "POP"
 	case ADD:
 		return "ADD"
-
 	case SUB:
 		return "SUB"
 	case MUL:
@@ -77,6 +77,8 @@ func (o ExprOpeType) String() string {
 		return "OR"
 	case NOT:
 		return "NOT"
+	case CAST:
+		return "CAST"
 	default:
 		return "Unknwon Operation"
 	}
@@ -108,6 +110,8 @@ func (c ExprVMCode) String() string {
 			} else {
 				s = fmt.Sprintf("%s FALSE", s)
 			}
+		case value.NULL:
+			s = fmt.Sprintf("%s NULL", s)
 		}
 	}
 
@@ -127,6 +131,8 @@ func (c ExprVMCode) String() string {
 			} else {
 				s = fmt.Sprintf("%s FALSE", s)
 			}
+		case value.NULL:
+			s = fmt.Sprintf("%s NULL", s)
 		}
 	}
 
@@ -141,6 +147,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 		switch code.Operator {
 		case PUSH:
 			s.push(code.Operand1)
+
 		case ADD:
 			ope2, err := s.pop()
 			if err != nil {
@@ -261,37 +268,28 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			if err != nil {
 				return col, err
 			}
+			if ope2.Int == 0 && ope2.Float == 0.0 {
+				return col, fmt.Errorf("Div by 0")
+			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
-				if ope2.Int == 0 {
-					return col, fmt.Errorf("Div by 0")
-				}
 				v := value.Value{
 					Type: value.INTEGER,
 					Int:  ope1.Int / ope2.Int,
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
-				if ope2.Float == 0 {
-					return col, fmt.Errorf("Div by 0")
-				}
 				v := value.Value{
 					Type:  value.FLOAT,
 					Float: ope1.Float / ope2.Float,
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
-				if ope2.Int == 0 {
-					return col, fmt.Errorf("Div by 0")
-				}
 				v := value.Value{
 					Type:  value.FLOAT,
 					Float: ope1.Float / float64(ope2.Int),
 				}
 				s.push(v)
 			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
-				if ope2.Float == 0 {
-					return col, fmt.Errorf("Div by 0")
-				}
 				v := value.Value{
 					Type:  value.FLOAT,
 					Float: float64(ope1.Int) / ope2.Float,
@@ -322,6 +320,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			} else {
 				return col, fmt.Errorf("Unknown Operation: %s %% %s", ope1.Type, ope2.Type)
 			}
+
 		case CALL:
 			args := []value.Value{}
 
@@ -346,12 +345,14 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				return col, err
 			}
 			s.push(r)
+
 		case STORE:
 			v, err := s.pop()
 			if err != nil {
 				return col, err
 			}
 			col = v
+
 		case PICK:
 			eng := virtual.VirtualStorage
 			r, err := eng.GetValue(code.Operand1.Column.TableID, code.Operand1.Column.Column, line)
@@ -359,6 +360,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				return col, err
 			}
 			s.push(r)
+
 		case EQ:
 			ope2, err := s.pop()
 			if err != nil {
@@ -368,11 +370,11 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			if err != nil {
 				return col, err
 			}
+			v := value.Value{
+				Type: value.BOOL,
+				Bool: value.Bool{},
+			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Int == ope2.Int {
 					v.Bool.True = true
 				} else {
@@ -380,10 +382,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float == ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -391,10 +389,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float == float64(ope2.Int) {
 					v.Bool.True = true
 				} else {
@@ -402,10 +396,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if float64(ope1.Int) == ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -413,10 +403,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.STRING && ope2.Type == value.STRING {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.String == ope2.String {
 					v.Bool.True = true
 				} else {
@@ -424,10 +410,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.BOOL && ope2.Type == value.BOOL {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if (ope1.Bool.True == true && ope2.Bool.True == true) || (ope1.Bool.False == true && ope2.Bool.False) {
 					v.Bool.True = true
 				} else {
@@ -435,10 +417,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope2.Type == value.NULL {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Type == value.NULL {
 					v.Bool.True = true
 				} else {
@@ -448,6 +426,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			} else {
 				return col, fmt.Errorf("Unknown Operation: %s = %s", ope1.Type, ope2.Type)
 			}
+
 		case NEQ:
 			ope2, err := s.pop()
 			if err != nil {
@@ -457,11 +436,11 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			if err != nil {
 				return col, err
 			}
+			v := value.Value{
+				Type: value.BOOL,
+				Bool: value.Bool{},
+			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Int != ope2.Int {
 					v.Bool.True = true
 				} else {
@@ -469,10 +448,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float != ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -480,10 +455,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float != float64(ope2.Int) {
 					v.Bool.True = true
 				} else {
@@ -491,10 +462,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if float64(ope1.Int) != ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -502,10 +469,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.STRING && ope2.Type == value.STRING {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.String != ope2.String {
 					v.Bool.True = true
 				} else {
@@ -513,10 +476,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope2.Type == value.NULL {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Type == value.NULL {
 					v.Bool.False = true
 				} else {
@@ -526,6 +485,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			} else {
 				return col, fmt.Errorf("Unknown Operation: %s <> %s", ope1.Type, ope2.Type)
 			}
+
 		case LT:
 			ope2, err := s.pop()
 			if err != nil {
@@ -535,11 +495,11 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			if err != nil {
 				return col, err
 			}
+			v := value.Value{
+				Type: value.BOOL,
+				Bool: value.Bool{},
+			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Int < ope2.Int {
 					v.Bool.True = true
 				} else {
@@ -547,10 +507,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float < ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -558,10 +514,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float < float64(ope2.Int) {
 					v.Bool.True = true
 				} else {
@@ -569,10 +521,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if float64(ope1.Int) < ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -582,6 +530,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			} else {
 				return col, fmt.Errorf("Unknown Operation: %s < %s", ope1.Type, ope2.Type)
 			}
+
 		case LTE:
 			ope2, err := s.pop()
 			if err != nil {
@@ -591,11 +540,11 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			if err != nil {
 				return col, err
 			}
+			v := value.Value{
+				Type: value.BOOL,
+				Bool: value.Bool{},
+			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Int <= ope2.Int {
 					v.Bool.True = true
 				} else {
@@ -603,10 +552,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float <= ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -614,10 +559,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float <= float64(ope2.Int) {
 					v.Bool.True = true
 				} else {
@@ -625,10 +566,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if float64(ope1.Int) <= ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -638,6 +575,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			} else {
 				return col, fmt.Errorf("Unknown Operation: %s <= %s", ope1.Type, ope2.Type)
 			}
+
 		case GT:
 			ope2, err := s.pop()
 			if err != nil {
@@ -647,11 +585,11 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			if err != nil {
 				return col, err
 			}
+			v := value.Value{
+				Type: value.BOOL,
+				Bool: value.Bool{},
+			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Int > ope2.Int {
 					v.Bool.True = true
 				} else {
@@ -659,10 +597,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float > ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -670,10 +604,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float > float64(ope2.Int) {
 					v.Bool.True = true
 				} else {
@@ -681,10 +611,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if float64(ope1.Int) > ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -694,6 +620,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			} else {
 				return col, fmt.Errorf("Unknown Operation: %s > %s", ope1.Type, ope2.Type)
 			}
+
 		case GTE:
 			ope2, err := s.pop()
 			if err != nil {
@@ -703,11 +630,11 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			if err != nil {
 				return col, err
 			}
+			v := value.Value{
+				Type: value.BOOL,
+				Bool: value.Bool{},
+			}
 			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Int >= ope2.Int {
 					v.Bool.True = true
 				} else {
@@ -715,10 +642,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float >= ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -726,10 +649,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Float >= float64(ope2.Int) {
 					v.Bool.True = true
 				} else {
@@ -737,10 +656,6 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 				s.push(v)
 			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if float64(ope1.Int) >= ope2.Float {
 					v.Bool.True = true
 				} else {
@@ -750,6 +665,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			} else {
 				return col, fmt.Errorf("Unknown Operation: %s >= %s", ope1.Type, ope2.Type)
 			}
+
 		case AND:
 			ope2, err := s.pop()
 			if err != nil {
@@ -759,11 +675,11 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			if err != nil {
 				return col, err
 			}
+			v := value.Value{
+				Type: value.BOOL,
+				Bool: value.Bool{},
+			}
 			if ope1.Type == value.BOOL && ope2.Type == value.BOOL {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Bool.True == true && ope2.Bool.True == true {
 					v.Bool.True = true
 				} else {
@@ -773,6 +689,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			} else {
 				return col, fmt.Errorf("Unknown Operation: %s AND %s", ope1.Type, ope2.Type)
 			}
+
 		case OR:
 			ope2, err := s.pop()
 			if err != nil {
@@ -782,11 +699,11 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			if err != nil {
 				return col, err
 			}
+			v := value.Value{
+				Type: value.BOOL,
+				Bool: value.Bool{},
+			}
 			if ope1.Type == value.BOOL && ope2.Type == value.BOOL {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Bool.False == true && ope2.Bool.False == true {
 					v.Bool.False = true
 				} else {
@@ -796,16 +713,17 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			} else {
 				return col, fmt.Errorf("Unknown Operation: %s OR %s", ope1.Type, ope2.Type)
 			}
+
 		case NOT:
 			ope1, err := s.pop()
 			if err != nil {
 				return col, err
 			}
+			v := value.Value{
+				Type: value.BOOL,
+				Bool: value.Bool{},
+			}
 			if ope1.Type == value.BOOL {
-				v := value.Value{
-					Type: value.BOOL,
-					Bool: value.Bool{},
-				}
 				if ope1.Bool.True == true {
 					v.Bool.False = true
 				}
@@ -816,6 +734,63 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			} else {
 				return col, fmt.Errorf("Unknown Operation: NOT %s", ope1.Type)
 			}
+
+		case CAST:
+			target, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+
+			switch code.Operand1.Type {
+			case value.INTEGER:
+				if target.Type == value.FLOAT {
+					target.Type = value.INTEGER
+					target.Int = int64(target.Float)
+				} else if target.Type == value.STRING {
+					val, err := value.Convert(target.String)
+					if err != nil {
+						return col, err
+					}
+					if val.Type == value.INTEGER {
+						target.Type = value.INTEGER
+						target.Int = val.Int
+					} else if val.Type == value.FLOAT {
+						target.Type = value.INTEGER
+						target.Int = int64(val.Float)
+					} else {
+						return col, fmt.Errorf("Cannot cast")
+					}
+				}
+			case value.FLOAT:
+				if target.Type == value.INTEGER {
+					target.Type = value.FLOAT
+					target.Float = float64(target.Int)
+				} else if target.Type == value.STRING {
+					val, err := value.Convert(target.String)
+					if err != nil {
+						return col, err
+					}
+					if val.Type == value.INTEGER {
+						target.Type = value.FLOAT
+						target.Float = float64(val.Int)
+					} else if val.Type == value.FLOAT {
+						target.Type = value.FLOAT
+						target.Float = val.Float
+					} else {
+						return col, fmt.Errorf("Cannot cast")
+					}
+				}
+			case value.STRING:
+				if target.Type == value.FLOAT {
+					target.Type = value.STRING
+					target.String = fmt.Sprintf("%f", target.Float)
+				} else if target.Type == value.INTEGER {
+					target.Type = value.STRING
+					target.String = fmt.Sprintf("%d", target.Int)
+				}
+			}
+			s.push(target)
+
 		case NA:
 			panic("")
 		}

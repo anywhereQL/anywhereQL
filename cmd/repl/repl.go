@@ -83,7 +83,7 @@ func (repl *REPL) Start(in io.ReadCloser, out io.Writer) error {
 					case value.FLOAT:
 						fmt.Fprintf(out, "%f", col.Float)
 					case value.STRING:
-						fmt.Fprintf(out, "%s", col.String)
+						fmt.Fprintf(out, "\"%s\"", col.String)
 					case value.NULL:
 						fmt.Fprintf(out, "NULL")
 					case value.BOOL:

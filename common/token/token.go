@@ -27,6 +27,13 @@ const (
 	K_NOT
 	K_ISNULL
 	K_NOTNULL
+	K_CAST
+	K_INT
+	K_INTEGER
+	K_FLOAT
+	K_DOUBLE
+	K_STRING
+	K_AS
 
 	S_PLUS
 	S_MINUS
@@ -85,6 +92,20 @@ func (t Type) String() string {
 		return "Keyword (ISNULL)"
 	case K_NOTNULL:
 		return "Keyword (NOTNULL)"
+	case K_CAST:
+		return "Keyword (CAST)"
+	case K_INT:
+		return "Keyword (INT)"
+	case K_INTEGER:
+		return "Keyword (INTEGER)"
+	case K_FLOAT:
+		return "Keyword (FLOAT)"
+	case K_DOUBLE:
+		return "Keyword (DOUBLE)"
+	case K_STRING:
+		return "Keyword (STRING)"
+	case K_AS:
+		return "Keyword (AS)"
 
 	case S_PLUS:
 		return "Symbol (+)"
@@ -167,6 +188,17 @@ func LookupKeyword(s string) (bool, Type) {
 		return true, K_ISNULL
 	case "NOTNULL":
 		return true, K_NOTNULL
+	case "CAST":
+		return true, K_CAST
+	case "INT", "INTEGER":
+		return true, K_INT
+	case "FLOAT", "DOUBLE":
+		return true, K_DOUBLE
+	case "STRING":
+		return true, K_STRING
+	case "AS":
+		return true, K_AS
+
 	default:
 		return false, UNKNOWN
 	}

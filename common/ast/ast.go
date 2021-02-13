@@ -31,6 +31,20 @@ type Expression struct {
 	BinaryOperation *BinaryOpe
 	FunctionCall    *FunctionCall
 	Column          *Column
+	Cast            *Cast
+}
+
+type Type int
+
+const (
+	T_INT Type = iota
+	T_FLOAT
+	T_STRING
+)
+
+type Cast struct {
+	Expr *Expression
+	Type Type
 }
 
 type Literal struct {

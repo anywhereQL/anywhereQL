@@ -138,6 +138,19 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 			},
 		}
 		codes = append(codes, vm.ExprVMCode{Operator: vm.PICK, Operand1: v})
+	} else if expr.Cast != nil {
+		v := value.Value{}
+		c := translateExpr(expr.Cast.Expr)
+		codes = append(codes, c...)
+		switch expr.Cast.Type {
+		case ast.T_INT:
+			v.Type = value.INTEGER
+		case ast.T_FLOAT:
+			v.Type = value.FLOAT
+		case ast.T_STRING:
+			v.Type = value.STRING
+		}
+		codes = append(codes, vm.ExprVMCode{Operator: vm.CAST, Operand1: v})
 	}
 	return codes
 }
