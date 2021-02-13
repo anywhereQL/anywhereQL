@@ -95,6 +95,10 @@ func (p *parser) parseBinaryExpr(left *ast.Expression) (*ast.Expression, error) 
 		expr.BinaryOperation.Operator = ast.B_LESS_THAN
 	case token.S_LESS_THAN_EQUAL:
 		expr.BinaryOperation.Operator = ast.B_LESS_THAN_EQUAL
+	case token.K_AND:
+		expr.BinaryOperation.Operator = ast.B_AND
+	case token.K_OR:
+		expr.BinaryOperation.Operator = ast.B_OR
 
 	default:
 		return expr, fmt.Errorf("Unknown Binary Operator: %s", p.currentToken.Literal)
@@ -135,6 +139,8 @@ func (p *parser) parsePrefixExpr() (*ast.Expression, error) {
 		expr.UnaryOperation.Operator = ast.U_PLUS
 	case token.S_MINUS:
 		expr.UnaryOperation.Operator = ast.U_MINUS
+	case token.K_NOT:
+		expr.UnaryOperation.Operator = ast.U_NOT
 	default:
 		return expr, fmt.Errorf("Unknwon Prefix Operator: %s", p.currentToken.Literal)
 	}
@@ -237,6 +243,49 @@ func (p *parser) parseBoolExpr() (*ast.Expression, error) {
 		expr.Literal.Bool.True = true
 	} else if p.currentToken.Type == token.K_FALSE {
 		expr.Literal.Bool.False = true
+	}
+	return expr, nil
+}
+
+func (p *parser) parseIsExpr(left *ast.Expression) (*ast.Expression, error) {
+	expr := &ast.Expression{
+		BinaryOperation: &ast.BinaryOpe{
+			Left: left,
+			Right: &ast.Expression{
+				Literal: &ast.Literal{
+					NULL: true,
+				},
+			},
+		},
+	}
+
+	if p.currentToken.Type == token.K_IS {
+		if p.getNextToken().Type == token.K_NULL {
+			p.readToken()
+			expr.BinaryOperation.Operator = ast.B_EQUAL
+		} else {
+			if p.getNextToken().Type == token.K_NOT {
+				p.readToken()
+				if p.getNextToken().Type != token.K_NULL {
+					return expr, fmt.Errorf("Unknown IS Expr")
+				}
+				p.readToken()
+				expr.BinaryOperation.Operator = ast.B_NOT_EQUAL
+			}
+		}
+	} else if p.currentToken.Type == token.K_ISNULL {
+		expr.BinaryOperation.Operator = ast.B_EQUAL
+	} else if p.currentToken.Type == token.K_NOTNULL {
+		expr.BinaryOperation.Operator = ast.B_NOT_EQUAL
+	}
+	return expr, nil
+}
+
+func (p *parser) parseNullExpr() (*ast.Expression, error) {
+	expr := &ast.Expression{
+		Literal: &ast.Literal{
+			NULL: true,
+		},
 	}
 	return expr, nil
 }

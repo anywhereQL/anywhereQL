@@ -37,6 +37,7 @@ type Literal struct {
 	Numeric *Numeric
 	String  *String
 	Bool    *Bool
+	NULL    bool
 }
 
 type Bool struct {
@@ -81,9 +82,12 @@ const (
 	B_GREATER_THAN_EQUAL
 	B_LESS_THAN
 	B_LESS_THAN_EQUAL
+	B_AND
+	B_OR
 
 	U_PLUS
 	U_MINUS
+	U_NOT
 )
 
 func (o OperatorType) String() string {
@@ -110,11 +114,17 @@ func (o OperatorType) String() string {
 		return "<"
 	case B_LESS_THAN_EQUAL:
 		return "<="
+	case B_AND:
+		return "AND"
+	case B_OR:
+		return "OR"
 
 	case U_PLUS:
 		return "+"
 	case U_MINUS:
 		return "-"
+	case U_NOT:
+		return "NOT"
 	default:
 		return "Unknown Operator"
 	}

@@ -38,6 +38,8 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 			} else if expr.Literal.Bool.False {
 				v.Bool.False = true
 			}
+		} else if expr.Literal.NULL == true {
+			v.Type = value.NULL
 		}
 
 		c := vm.ExprVMCode{
@@ -97,6 +99,14 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 			c = vm.ExprVMCode{
 				Operator: vm.LTE,
 			}
+		case ast.B_AND:
+			c = vm.ExprVMCode{
+				Operator: vm.AND,
+			}
+		case ast.B_OR:
+			c = vm.ExprVMCode{
+				Operator: vm.OR,
+			}
 
 		default:
 			return codes
@@ -109,6 +119,8 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 		case ast.U_MINUS:
 			codes = append(codes, vm.ExprVMCode{Operator: vm.PUSH, Operand1: value.Value{Type: value.INTEGER, Int: -1}})
 			codes = append(codes, vm.ExprVMCode{Operator: vm.MUL})
+		case ast.U_NOT:
+			codes = append(codes, vm.ExprVMCode{Operator: vm.NOT})
 		}
 	} else if expr.FunctionCall != nil {
 		for _, arg := range expr.FunctionCall.Args {

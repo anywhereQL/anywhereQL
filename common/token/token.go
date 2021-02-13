@@ -21,6 +21,12 @@ const (
 	K_FROM
 	K_TRUE
 	K_FALSE
+	K_AND
+	K_OR
+	K_IS
+	K_NOT
+	K_ISNULL
+	K_NOTNULL
 
 	S_PLUS
 	S_MINUS
@@ -67,6 +73,18 @@ func (t Type) String() string {
 		return "Keyword (TRUE)"
 	case K_FALSE:
 		return "Keyword (FALSE)"
+	case K_AND:
+		return "Keyword (AND)"
+	case K_OR:
+		return "Keyword (OR)"
+	case K_IS:
+		return "Keyword (IS)"
+	case K_NOT:
+		return "Keyword (NOT)"
+	case K_ISNULL:
+		return "Keyword (ISNULL)"
+	case K_NOTNULL:
+		return "Keyword (NOTNULL)"
 
 	case S_PLUS:
 		return "Symbol (+)"
@@ -137,6 +155,18 @@ func LookupKeyword(s string) (bool, Type) {
 		return true, K_TRUE
 	case "FALSE":
 		return true, K_FALSE
+	case "AND":
+		return true, K_AND
+	case "OR":
+		return true, K_OR
+	case "IS":
+		return true, K_IS
+	case "NOT":
+		return true, K_NOT
+	case "ISNULL":
+		return true, K_ISNULL
+	case "NOTNULL":
+		return true, K_NOTNULL
 	default:
 		return false, UNKNOWN
 	}

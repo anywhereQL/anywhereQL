@@ -29,6 +29,9 @@ const (
 	LTE
 	GT
 	GTE
+	AND
+	OR
+	NOT
 )
 
 func (o ExprOpeType) String() string {
@@ -68,6 +71,12 @@ func (o ExprOpeType) String() string {
 		return "GREATER THAN"
 	case GTE:
 		return "GREATER THAN EQUAL"
+	case AND:
+		return "AND"
+	case OR:
+		return "OR"
+	case NOT:
+		return "NOT"
 	default:
 		return "Unknwon Operation"
 	}
@@ -414,6 +423,28 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 					v.Bool.False = true
 				}
 				s.push(v)
+			} else if ope1.Type == value.BOOL && ope2.Type == value.BOOL {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if (ope1.Bool.True == true && ope2.Bool.True == true) || (ope1.Bool.False == true && ope2.Bool.False) {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope2.Type == value.NULL {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Type == value.NULL {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
 			} else {
 				return col, fmt.Errorf("Unknown Operation: %s = %s", ope1.Type, ope2.Type)
 			}
@@ -479,6 +510,17 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 					v.Bool.True = true
 				} else {
 					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope2.Type == value.NULL {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Type == value.NULL {
+					v.Bool.False = true
+				} else {
+					v.Bool.True = true
 				}
 				s.push(v)
 			} else {
@@ -707,6 +749,72 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				s.push(v)
 			} else {
 				return col, fmt.Errorf("Unknown Operation: %s >= %s", ope1.Type, ope2.Type)
+			}
+		case AND:
+			ope2, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			ope1, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			if ope1.Type == value.BOOL && ope2.Type == value.BOOL {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Bool.True == true && ope2.Bool.True == true {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else {
+				return col, fmt.Errorf("Unknown Operation: %s AND %s", ope1.Type, ope2.Type)
+			}
+		case OR:
+			ope2, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			ope1, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			if ope1.Type == value.BOOL && ope2.Type == value.BOOL {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Bool.False == true && ope2.Bool.False == true {
+					v.Bool.False = true
+				} else {
+					v.Bool.True = true
+				}
+				s.push(v)
+			} else {
+				return col, fmt.Errorf("Unknown Operation: %s OR %s", ope1.Type, ope2.Type)
+			}
+		case NOT:
+			ope1, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			if ope1.Type == value.BOOL {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Bool.True == true {
+					v.Bool.False = true
+				}
+				if ope1.Bool.False == true {
+					v.Bool.True = true
+				}
+				s.push(v)
+			} else {
+				return col, fmt.Errorf("Unknown Operation: NOT %s", ope1.Type)
 			}
 		case NA:
 			panic("")

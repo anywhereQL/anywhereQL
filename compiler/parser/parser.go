@@ -15,6 +15,8 @@ type (
 const (
 	_ int = iota
 	LOWEST
+	AND_OR
+	NOT
 	COMPARE
 	SUM
 	PRODUCT
@@ -33,6 +35,12 @@ var precedences = map[token.Type]int{
 	token.S_GREATER_THAN_EQUAL: COMPARE,
 	token.S_LESS_THAN:          COMPARE,
 	token.S_LESS_THAN_EQUAL:    COMPARE,
+	token.K_NOT:                NOT,
+	token.K_AND:                AND_OR,
+	token.K_OR:                 AND_OR,
+	token.K_IS:                 COMPARE,
+	token.K_ISNULL:             COMPARE,
+	token.K_NOTNULL:            COMPARE,
 }
 
 type parser struct {
@@ -72,6 +80,8 @@ func new(tokens token.Tokens) *parser {
 	p.unaryParseFunc[token.STRING] = p.parseString
 	p.unaryParseFunc[token.K_TRUE] = p.parseBoolExpr
 	p.unaryParseFunc[token.K_FALSE] = p.parseBoolExpr
+	p.unaryParseFunc[token.K_NOT] = p.parsePrefixExpr
+	p.unaryParseFunc[token.K_NULL] = p.parseNullExpr
 
 	p.binaryParseFunc[token.S_PLUS] = p.parseBinaryExpr
 	p.binaryParseFunc[token.S_MINUS] = p.parseBinaryExpr
@@ -84,6 +94,11 @@ func new(tokens token.Tokens) *parser {
 	p.binaryParseFunc[token.S_GREATER_THAN_EQUAL] = p.parseBinaryExpr
 	p.binaryParseFunc[token.S_LESS_THAN] = p.parseBinaryExpr
 	p.binaryParseFunc[token.S_LESS_THAN_EQUAL] = p.parseBinaryExpr
+	p.binaryParseFunc[token.K_AND] = p.parseBinaryExpr
+	p.binaryParseFunc[token.K_OR] = p.parseBinaryExpr
+	p.binaryParseFunc[token.K_IS] = p.parseIsExpr
+	p.binaryParseFunc[token.K_ISNULL] = p.parseIsExpr
+	p.binaryParseFunc[token.K_NOTNULL] = p.parseIsExpr
 
 	return p
 }
