@@ -4,6 +4,7 @@ import (
 	"github.com/anywhereQL/anywhereQL/common/ast"
 	"github.com/anywhereQL/anywhereQL/common/value"
 	"github.com/anywhereQL/anywhereQL/runtime/vm"
+	"github.com/google/uuid"
 )
 
 func Translate(expr *ast.Expression) []vm.ExprVMCode {
@@ -44,7 +45,7 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 
 		c := vm.ExprVMCode{
 			Operator: vm.PUSH,
-			Operand1: v,
+			Operand:  v,
 		}
 		codes = append(codes, c)
 	} else if expr.BinaryOperation != nil {
@@ -117,7 +118,7 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 		codes = append(codes, c...)
 		switch expr.UnaryOperation.Operator {
 		case ast.U_MINUS:
-			codes = append(codes, vm.ExprVMCode{Operator: vm.PUSH, Operand1: value.Value{Type: value.INTEGER, Int: -1}})
+			codes = append(codes, vm.ExprVMCode{Operator: vm.PUSH, Operand: value.Value{Type: value.INTEGER, Int: -1}})
 			codes = append(codes, vm.ExprVMCode{Operator: vm.MUL})
 		case ast.U_NOT:
 			codes = append(codes, vm.ExprVMCode{Operator: vm.NOT})
@@ -127,8 +128,8 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 			c := translateExpr(&arg)
 			codes = append(codes, c...)
 		}
-		codes = append(codes, vm.ExprVMCode{Operator: vm.PUSH, Operand1: value.Value{Type: value.INTEGER, Int: int64(len(expr.FunctionCall.Args))}})
-		codes = append(codes, vm.ExprVMCode{Operator: vm.CALL, Operand1: value.Value{Type: value.STRING, String: expr.FunctionCall.Name}})
+		codes = append(codes, vm.ExprVMCode{Operator: vm.PUSH, Operand: value.Value{Type: value.INTEGER, Int: int64(len(expr.FunctionCall.Args))}})
+		codes = append(codes, vm.ExprVMCode{Operator: vm.CALL, Operand: value.Value{Type: value.STRING, String: expr.FunctionCall.Name}})
 	} else if expr.Column != nil {
 		v := value.Value{
 			Type: value.COLUMN,
@@ -137,7 +138,7 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 				TableID: expr.Column.Table.ID,
 			},
 		}
-		codes = append(codes, vm.ExprVMCode{Operator: vm.PICK, Operand1: v})
+		codes = append(codes, vm.ExprVMCode{Operator: vm.PICK, Operand: v})
 	} else if expr.Cast != nil {
 		v := value.Value{}
 		c := translateExpr(expr.Cast.Expr)
@@ -150,7 +151,64 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 		case ast.T_STRING:
 			v.Type = value.STRING
 		}
-		codes = append(codes, vm.ExprVMCode{Operator: vm.CAST, Operand1: v})
+		codes = append(codes, vm.ExprVMCode{Operator: vm.CAST, Operand: v})
+	} else if expr.Case != nil {
+		endMark := uuid.New()
+		if expr.Case.Value != nil {
+			for _, ca := range expr.Case.CaseValues {
+				exp := &ast.Expression{
+					BinaryOperation: &ast.BinaryOpe{
+						Left:     expr.Case.Value,
+						Right:    ca.Condition,
+						Operator: ast.B_EQUAL,
+					},
+				}
+				c := translateExpr(exp)
+				codes = append(codes, c...)
+				tOpe := translateExpr(ca.Result)
+				tOpe = append(tOpe, vm.ExprVMCode{Operator: vm.JMPL, Operand: value.Value{
+					Type:   value.STRING,
+					String: endMark.String(),
+				}})
+
+				falseOpe := vm.ExprVMCode{
+					Operator: vm.JMPNC,
+					Operand: value.Value{
+						Type: value.INTEGER,
+						Int:  int64(len(tOpe)),
+					},
+				}
+
+				codes = append(codes, falseOpe)
+				codes = append(codes, tOpe...)
+			}
+		} else {
+			for _, ca := range expr.Case.CaseValues {
+				c := translateExpr(ca.Condition)
+				r := translateExpr(ca.Result)
+				r = append(r, vm.ExprVMCode{Operator: vm.JMPL, Operand: value.Value{
+					Type:   value.STRING,
+					String: endMark.String(),
+				}})
+
+				codes = append(codes, c...)
+				codes = append(codes, vm.ExprVMCode{Operator: vm.JMPNC, Operand: value.Value{Type: value.INTEGER, Int: int64(len(r))}})
+				codes = append(codes, r...)
+			}
+		}
+
+		if expr.Case.ElseValue != nil {
+			c := translateExpr(expr.Case.ElseValue)
+			codes = append(codes, c...)
+		} else {
+			codes = append(codes, vm.ExprVMCode{Operator: vm.PUSH, Operand: value.Value{
+				Type: value.NULL,
+			}})
+		}
+		codes = append(codes, vm.ExprVMCode{Operator: vm.LABEL, Operand: value.Value{
+			Type:   value.STRING,
+			String: endMark.String(),
+		}})
 	}
 	return codes
 }

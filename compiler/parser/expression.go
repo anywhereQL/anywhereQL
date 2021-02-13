@@ -327,3 +327,59 @@ func (p *parser) parseCastExpr() (*ast.Expression, error) {
 
 	return expr, nil
 }
+
+func (p *parser) parseCaseExpr() (*ast.Expression, error) {
+	expr := &ast.Expression{
+		Case: &ast.Case{},
+	}
+
+	p.readToken()
+
+	if p.currentToken.Type != token.K_WHEN {
+		ex, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return expr, err
+		}
+		expr.Case.Value = ex
+		p.readToken()
+	}
+	for {
+		if p.currentToken.Type != token.K_WHEN {
+			return expr, fmt.Errorf("Unknown Case format")
+		}
+		p.readToken()
+		cond, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return expr, err
+		}
+		p.readToken()
+		if p.currentToken.Type != token.K_THEN {
+			return expr, fmt.Errorf("Unexpected token")
+		}
+		p.readToken()
+		rslt, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return expr, err
+		}
+		expr.Case.CaseValues = append(expr.Case.CaseValues, ast.CaseCondition{Condition: cond, Result: rslt})
+		p.readToken()
+		if p.currentToken.Type == token.K_ELSE || p.currentToken.Type == token.K_END {
+			break
+		}
+	}
+
+	if p.currentToken.Type == token.K_ELSE {
+		p.readToken()
+		e, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return expr, err
+		}
+		expr.Case.ElseValue = e
+		p.readToken()
+	}
+	if p.currentToken.Type != token.K_END {
+		return expr, fmt.Errorf("Unexpected Token")
+	}
+
+	return expr, nil
+}

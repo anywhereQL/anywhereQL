@@ -83,6 +83,7 @@ func new(tokens token.Tokens) *parser {
 	p.unaryParseFunc[token.K_NOT] = p.parsePrefixExpr
 	p.unaryParseFunc[token.K_NULL] = p.parseNullExpr
 	p.unaryParseFunc[token.K_CAST] = p.parseCastExpr
+	p.unaryParseFunc[token.K_CASE] = p.parseCaseExpr
 
 	p.binaryParseFunc[token.S_PLUS] = p.parseBinaryExpr
 	p.binaryParseFunc[token.S_MINUS] = p.parseBinaryExpr

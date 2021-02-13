@@ -151,6 +151,29 @@ func (r *Runtime) scanExpr(expr *ast.Expression) error {
 		if err := r.scanExpr(expr.UnaryOperation.Expr); err != nil {
 			return err
 		}
+	} else if expr.Cast != nil {
+		if err := r.scanExpr(expr.Cast.Expr); err != nil {
+			return err
+		}
+	} else if expr.Case != nil {
+		if expr.Case.Value != nil {
+			if err := r.scanExpr(expr.Case.Value); err != nil {
+				return err
+			}
+		}
+		for _, ca := range expr.Case.CaseValues {
+			if err := r.scanExpr(ca.Condition); err != nil {
+				return err
+			}
+			if err := r.scanExpr(ca.Result); err != nil {
+				return err
+			}
+		}
+		if expr.Case.ElseValue != nil {
+			if err := r.scanExpr(expr.Case.ElseValue); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }

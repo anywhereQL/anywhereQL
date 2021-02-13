@@ -32,6 +32,18 @@ type Expression struct {
 	FunctionCall    *FunctionCall
 	Column          *Column
 	Cast            *Cast
+	Case            *Case
+}
+
+type Case struct {
+	Value      *Expression
+	CaseValues []CaseCondition
+	ElseValue  *Expression
+}
+
+type CaseCondition struct {
+	Condition *Expression
+	Result    *Expression
 }
 
 type Type int

@@ -33,6 +33,11 @@ const (
 	OR
 	NOT
 	CAST
+	JMP
+	JMPC
+	JMPNC
+	JMPL
+	LABEL
 )
 
 func (o ExprOpeType) String() string {
@@ -60,17 +65,17 @@ func (o ExprOpeType) String() string {
 	case PICK:
 		return "PICK"
 	case EQ:
-		return "EQUAL"
+		return "EQ"
 	case NEQ:
-		return "NOT EQUAL"
+		return "NEQL"
 	case LT:
-		return "LESS THAN"
+		return "LT"
 	case LTE:
-		return "LESS THAN EQUAL"
+		return "LTE"
 	case GT:
-		return "GREATER THAN"
+		return "GT"
 	case GTE:
-		return "GREATER THAN EQUAL"
+		return "GTE"
 	case AND:
 		return "AND"
 	case OR:
@@ -79,6 +84,16 @@ func (o ExprOpeType) String() string {
 		return "NOT"
 	case CAST:
 		return "CAST"
+	case JMP:
+		return "JMP"
+	case JMPC:
+		return "JMPC"
+	case JMPNC:
+		return "JMPNC"
+	case JMPL:
+		return "JMPL"
+	case LABEL:
+		return "LABEL"
 	default:
 		return "Unknwon Operation"
 	}
@@ -86,47 +101,25 @@ func (o ExprOpeType) String() string {
 
 type ExprVMCode struct {
 	Operator ExprOpeType
-	Operand1 value.Value
-	Operand2 value.Value
+	Operand  value.Value
 }
 
 func (c ExprVMCode) String() string {
 	s := ""
 	s = fmt.Sprintf("%s", c.Operator)
 
-	if c.Operand1.Type != value.NA {
-		switch c.Operand1.Type {
+	if c.Operand.Type != value.NA {
+		switch c.Operand.Type {
 		case value.INTEGER:
-			s = fmt.Sprintf("%s %d", s, c.Operand1.Int)
+			s = fmt.Sprintf("%s %d", s, c.Operand.Int)
 		case value.FLOAT:
-			s = fmt.Sprintf("%s %f", s, c.Operand1.Float)
+			s = fmt.Sprintf("%s %f", s, c.Operand.Float)
 		case value.STRING:
-			s = fmt.Sprintf("%s %s", s, c.Operand1.String)
+			s = fmt.Sprintf("%s %s", s, c.Operand.String)
 		case value.COLUMN:
-			s = fmt.Sprintf("%s %s.%s", s, c.Operand1.Column.TableID, c.Operand1.Column.Column)
+			s = fmt.Sprintf("%s %s.%s", s, c.Operand.Column.TableID, c.Operand.Column.Column)
 		case value.BOOL:
-			if c.Operand1.Bool.True {
-				s = fmt.Sprintf("%s TRUE", s)
-			} else {
-				s = fmt.Sprintf("%s FALSE", s)
-			}
-		case value.NULL:
-			s = fmt.Sprintf("%s NULL", s)
-		}
-	}
-
-	if c.Operand2.Type != value.NA {
-		switch c.Operand2.Type {
-		case value.INTEGER:
-			s = fmt.Sprintf("%s %d", s, c.Operand2.Int)
-		case value.FLOAT:
-			s = fmt.Sprintf("%s %f", s, c.Operand2.Float)
-		case value.STRING:
-			s = fmt.Sprintf("%s %s", s, c.Operand2.String)
-		case value.COLUMN:
-			s = fmt.Sprintf("%s %s.%s", s, c.Operand1.Column.TableID, c.Operand1.Column.Column)
-		case value.BOOL:
-			if c.Operand2.Bool.True {
+			if c.Operand.Bool.True {
 				s = fmt.Sprintf("%s TRUE", s)
 			} else {
 				s = fmt.Sprintf("%s FALSE", s)
@@ -143,10 +136,12 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 	s := newStack()
 	col := value.Value{}
 
-	for _, code := range codes {
+	for pc := 0; pc < len(codes); pc++ {
+		code := codes[pc]
+
 		switch code.Operator {
 		case PUSH:
-			s.push(code.Operand1)
+			s.push(code.Operand)
 
 		case ADD:
 			ope2, err := s.pop()
@@ -336,9 +331,9 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				args = append(args, v)
 			}
 
-			call := function.LookupFunction(code.Operand1.String)
+			call := function.LookupFunction(code.Operand.String)
 			if call == nil {
-				return col, fmt.Errorf("Function(%s) is not implement", code.Operand1.String)
+				return col, fmt.Errorf("Function(%s) is not implement", code.Operand.String)
 			}
 			r, err := call(args)
 			if err != nil {
@@ -355,7 +350,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 
 		case PICK:
 			eng := virtual.VirtualStorage
-			r, err := eng.GetValue(code.Operand1.Column.TableID, code.Operand1.Column.Column, line)
+			r, err := eng.GetValue(code.Operand.Column.TableID, code.Operand.Column.Column, line)
 			if err != nil {
 				return col, err
 			}
@@ -741,7 +736,7 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				return col, err
 			}
 
-			switch code.Operand1.Type {
+			switch code.Operand.Type {
 			case value.INTEGER:
 				if target.Type == value.FLOAT {
 					target.Type = value.INTEGER
@@ -790,6 +785,37 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				}
 			}
 			s.push(target)
+
+		case JMP:
+			pc += int(code.Operand.Int)
+
+		case JMPC:
+			v, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			if v.Bool.True == true {
+				pc += int(code.Operand.Int)
+			}
+
+		case JMPNC:
+			v, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			if v.Bool.False == true {
+				pc += int(code.Operand.Int)
+			}
+
+		case JMPL:
+			for s := 0; s < len(codes); s++ {
+				if codes[s].Operator == LABEL && codes[s].Operand.String == code.Operand.String {
+					pc = s
+					break
+				}
+			}
+		case LABEL:
+			continue
 
 		case NA:
 			panic("")

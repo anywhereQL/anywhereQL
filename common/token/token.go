@@ -34,6 +34,11 @@ const (
 	K_DOUBLE
 	K_STRING
 	K_AS
+	K_CASE
+	K_WHEN
+	K_THEN
+	K_ELSE
+	K_END
 
 	S_PLUS
 	S_MINUS
@@ -106,6 +111,16 @@ func (t Type) String() string {
 		return "Keyword (STRING)"
 	case K_AS:
 		return "Keyword (AS)"
+	case K_CASE:
+		return "Keyword (CASE)"
+	case K_WHEN:
+		return "Keyword (WHEN)"
+	case K_THEN:
+		return "Keyword (THEN)"
+	case K_ELSE:
+		return "Keyword (ELSE)"
+	case K_END:
+		return "Keyword (END)"
 
 	case S_PLUS:
 		return "Symbol (+)"
@@ -198,6 +213,16 @@ func LookupKeyword(s string) (bool, Type) {
 		return true, K_STRING
 	case "AS":
 		return true, K_AS
+	case "CASE":
+		return true, K_CASE
+	case "WHEN":
+		return true, K_WHEN
+	case "THEN":
+		return true, K_THEN
+	case "ELSE":
+		return true, K_ELSE
+	case "END":
+		return true, K_END
 
 	default:
 		return false, UNKNOWN
