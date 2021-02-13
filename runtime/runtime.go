@@ -47,6 +47,8 @@ func (r *Runtime) Start(sql string) ([][]value.Value, error) {
 		return [][]value.Value{}, err
 	}
 
+	debug.PrintAST(os.Stdout, a)
+
 	for _, s := range a.SQL {
 		lastID, err := vm.TableRun(s.SELECTStatement.FROM, r.revTables)
 		if err != nil {

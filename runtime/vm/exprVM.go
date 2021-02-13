@@ -23,6 +23,12 @@ const (
 	STORE
 	CALL
 	PICK
+	EQ
+	NEQ
+	LT
+	LTE
+	GT
+	GTE
 )
 
 func (o ExprOpeType) String() string {
@@ -50,6 +56,18 @@ func (o ExprOpeType) String() string {
 		return "STORE"
 	case PICK:
 		return "PICK"
+	case EQ:
+		return "EQUAL"
+	case NEQ:
+		return "NOT EQUAL"
+	case LT:
+		return "LESS THAN"
+	case LTE:
+		return "LESS THAN EQUAL"
+	case GT:
+		return "GREATER THAN"
+	case GTE:
+		return "GREATER THAN EQUAL"
 	default:
 		return "Unknwon Operation"
 	}
@@ -332,6 +350,364 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 				return col, err
 			}
 			s.push(r)
+		case EQ:
+			ope2, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			ope1, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Int == ope2.Int {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float == ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float == float64(ope2.Int) {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if float64(ope1.Int) == ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.STRING && ope2.Type == value.STRING {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.String == ope2.String {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else {
+				return col, fmt.Errorf("Unknown Operation: %s = %s", ope1.Type, ope2.Type)
+			}
+		case NEQ:
+			ope2, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			ope1, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Int != ope2.Int {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float != ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float != float64(ope2.Int) {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if float64(ope1.Int) != ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.STRING && ope2.Type == value.STRING {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.String != ope2.String {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else {
+				return col, fmt.Errorf("Unknown Operation: %s <> %s", ope1.Type, ope2.Type)
+			}
+		case LT:
+			ope2, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			ope1, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Int < ope2.Int {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float < ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float < float64(ope2.Int) {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if float64(ope1.Int) < ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else {
+				return col, fmt.Errorf("Unknown Operation: %s < %s", ope1.Type, ope2.Type)
+			}
+		case LTE:
+			ope2, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			ope1, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Int <= ope2.Int {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float <= ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float <= float64(ope2.Int) {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if float64(ope1.Int) <= ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else {
+				return col, fmt.Errorf("Unknown Operation: %s <= %s", ope1.Type, ope2.Type)
+			}
+		case GT:
+			ope2, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			ope1, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Int > ope2.Int {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float > ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float > float64(ope2.Int) {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if float64(ope1.Int) > ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else {
+				return col, fmt.Errorf("Unknown Operation: %s > %s", ope1.Type, ope2.Type)
+			}
+		case GTE:
+			ope2, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			ope1, err := s.pop()
+			if err != nil {
+				return col, err
+			}
+			if ope1.Type == value.INTEGER && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Int >= ope2.Int {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float >= ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.FLOAT && ope2.Type == value.INTEGER {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if ope1.Float >= float64(ope2.Int) {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else if ope1.Type == value.INTEGER && ope2.Type == value.FLOAT {
+				v := value.Value{
+					Type: value.BOOL,
+					Bool: value.Bool{},
+				}
+				if float64(ope1.Int) >= ope2.Float {
+					v.Bool.True = true
+				} else {
+					v.Bool.False = true
+				}
+				s.push(v)
+			} else {
+				return col, fmt.Errorf("Unknown Operation: %s >= %s", ope1.Type, ope2.Type)
+			}
 		case NA:
 			panic("")
 		}

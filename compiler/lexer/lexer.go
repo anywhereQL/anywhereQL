@@ -202,6 +202,28 @@ func (l *lexer) lookupSymbol() (string, token.Type) {
 		t = token.S_QUOTE
 	case '.':
 		t = token.S_PERIOD
+	case '=':
+		t = token.S_EQUAL
+	case '<':
+		if l.getNextChar() == '>' {
+			l.readChar()
+			t = token.S_NOT_EQUAL
+			v = "<>"
+		} else if l.getNextChar() == '=' {
+			l.readChar()
+			t = token.S_LESS_THAN_EQUAL
+			v = "<="
+		} else {
+			t = token.S_LESS_THAN
+		}
+	case '>':
+		if l.getNextChar() == '=' {
+			l.readChar()
+			t = token.S_GREATER_THAN_EQUAL
+			v = ">="
+		} else {
+			t = token.S_GREATER_THAN
+		}
 	default:
 		t = token.UNKNOWN
 		v = ""

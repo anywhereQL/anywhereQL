@@ -83,6 +83,19 @@ func (p *parser) parseBinaryExpr(left *ast.Expression) (*ast.Expression, error) 
 		expr.BinaryOperation.Operator = ast.B_SOLIDAS
 	case token.S_PERCENT:
 		expr.BinaryOperation.Operator = ast.B_PERCENT
+	case token.S_EQUAL:
+		expr.BinaryOperation.Operator = ast.B_EQUAL
+	case token.S_NOT_EQUAL:
+		expr.BinaryOperation.Operator = ast.B_NOT_EQUAL
+	case token.S_GREATER_THAN:
+		expr.BinaryOperation.Operator = ast.B_GREATER_THAN
+	case token.S_GREATER_THAN_EQUAL:
+		expr.BinaryOperation.Operator = ast.B_GREATER_THAN_EQUAL
+	case token.S_LESS_THAN:
+		expr.BinaryOperation.Operator = ast.B_LESS_THAN
+	case token.S_LESS_THAN_EQUAL:
+		expr.BinaryOperation.Operator = ast.B_LESS_THAN_EQUAL
+
 	default:
 		return expr, fmt.Errorf("Unknown Binary Operator: %s", p.currentToken.Literal)
 	}

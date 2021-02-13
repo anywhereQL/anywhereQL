@@ -75,6 +75,12 @@ const (
 	B_ASTERISK
 	B_SOLIDAS
 	B_PERCENT
+	B_EQUAL
+	B_NOT_EQUAL
+	B_GREATER_THAN
+	B_GREATER_THAN_EQUAL
+	B_LESS_THAN
+	B_LESS_THAN_EQUAL
 
 	U_PLUS
 	U_MINUS
@@ -92,6 +98,18 @@ func (o OperatorType) String() string {
 		return "/"
 	case B_PERCENT:
 		return "%"
+	case B_EQUAL:
+		return "="
+	case B_NOT_EQUAL:
+		return "<>"
+	case B_GREATER_THAN:
+		return ">"
+	case B_GREATER_THAN_EQUAL:
+		return ">="
+	case B_LESS_THAN:
+		return "<"
+	case B_LESS_THAN_EQUAL:
+		return "<="
 
 	case U_PLUS:
 		return "+"

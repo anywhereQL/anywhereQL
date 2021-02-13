@@ -73,6 +73,31 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 			c = vm.ExprVMCode{
 				Operator: vm.MOD,
 			}
+		case ast.B_EQUAL:
+			c = vm.ExprVMCode{
+				Operator: vm.EQ,
+			}
+		case ast.B_NOT_EQUAL:
+			c = vm.ExprVMCode{
+				Operator: vm.NEQ,
+			}
+		case ast.B_GREATER_THAN:
+			c = vm.ExprVMCode{
+				Operator: vm.GT,
+			}
+		case ast.B_GREATER_THAN_EQUAL:
+			c = vm.ExprVMCode{
+				Operator: vm.GTE,
+			}
+		case ast.B_LESS_THAN:
+			c = vm.ExprVMCode{
+				Operator: vm.LT,
+			}
+		case ast.B_LESS_THAN_EQUAL:
+			c = vm.ExprVMCode{
+				Operator: vm.LTE,
+			}
+
 		default:
 			return codes
 		}

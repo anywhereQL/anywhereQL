@@ -34,6 +34,12 @@ const (
 	S_QUOTE
 	S_DQUOTE
 	S_PERIOD
+	S_EQUAL
+	S_NOT_EQUAL
+	S_LESS_THAN
+	S_LESS_THAN_EQUAL
+	S_GREATER_THAN
+	S_GREATER_THAN_EQUAL
 )
 
 func (t Type) String() string {
@@ -86,6 +92,18 @@ func (t Type) String() string {
 		return "Symbol (\")"
 	case S_PERIOD:
 		return "Symbol (.)"
+	case S_EQUAL:
+		return "Symbol (=)"
+	case S_NOT_EQUAL:
+		return "Symbol (<>)"
+	case S_LESS_THAN:
+		return "Symbol (<)"
+	case S_LESS_THAN_EQUAL:
+		return "Symbol (<=)"
+	case S_GREATER_THAN:
+		return "Symbol (>)"
+	case S_GREATER_THAN_EQUAL:
+		return "Symbol (>=)"
 
 	default:
 		return "Error!! Unknown Token Type"
