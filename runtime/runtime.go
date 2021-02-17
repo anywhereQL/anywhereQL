@@ -47,6 +47,8 @@ func (r *Runtime) Start(sql string) ([][]value.Value, error) {
 		return [][]value.Value{}, err
 	}
 
+	debug.PrintAST(os.Stdout, a)
+
 	for _, s := range a.SQL {
 		lastID, err := vm.TableRun(s.SELECTStatement.FROM, r.revTables)
 		if err != nil {
@@ -149,6 +151,46 @@ func (r *Runtime) scanExpr(expr *ast.Expression) error {
 		if err := r.scanExpr(expr.UnaryOperation.Expr); err != nil {
 			return err
 		}
+	} else if expr.Cast != nil {
+		if err := r.scanExpr(expr.Cast.Expr); err != nil {
+			return err
+		}
+	} else if expr.Case != nil {
+		if expr.Case.Value != nil {
+			if err := r.scanExpr(expr.Case.Value); err != nil {
+				return err
+			}
+		}
+		for _, ca := range expr.Case.CaseValues {
+			if err := r.scanExpr(ca.Condition); err != nil {
+				return err
+			}
+			if err := r.scanExpr(ca.Result); err != nil {
+				return err
+			}
+		}
+		if expr.Case.ElseValue != nil {
+			if err := r.scanExpr(expr.Case.ElseValue); err != nil {
+				return err
+			}
+		}
+	} else if expr.Between != nil {
+		if expr.Between.Src != nil {
+			if err := r.scanExpr(expr.Between.Src); err != nil {
+				return err
+			}
+		}
+		if expr.Between.Begin != nil {
+			if err := r.scanExpr(expr.Between.Begin); err != nil {
+				return err
+			}
+		}
+		if expr.Between.End != nil {
+			if err := r.scanExpr(expr.Between.End); err != nil {
+				return err
+			}
+		}
+
 	}
 	return nil
 }

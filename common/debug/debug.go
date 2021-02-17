@@ -76,6 +76,15 @@ func printExpression(out io.Writer, sep string, expr *ast.Expression) {
 			}
 		} else if expr.Literal.String != nil {
 			fmt.Fprintf(out, "%s%s", sep, expr.Literal.String.Value)
+		} else if expr.Literal.NULL == true {
+			fmt.Fprintf(out, "%sNULL", sep)
+		} else if expr.Literal.Bool != nil {
+			if expr.Literal.Bool.True {
+				fmt.Fprintf(out, "%sTRUE", sep)
+			}
+			if expr.Literal.Bool.False {
+				fmt.Fprintf(out, "%sFALSE", sep)
+			}
 		}
 	}
 	if expr.Column != nil {

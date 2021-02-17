@@ -15,17 +15,33 @@ type (
 const (
 	_ int = iota
 	LOWEST
+	AND_OR
+	NOT
+	COMPARE
 	SUM
 	PRODUCT
 	HIGHEST
 )
 
 var precedences = map[token.Type]int{
-	token.S_PLUS:     SUM,
-	token.S_MINUS:    SUM,
-	token.S_ASTERISK: PRODUCT,
-	token.S_SOLIDAS:  PRODUCT,
-	token.S_PERCENT:  PRODUCT,
+	token.S_PLUS:               SUM,
+	token.S_MINUS:              SUM,
+	token.S_ASTERISK:           PRODUCT,
+	token.S_SOLIDAS:            PRODUCT,
+	token.S_PERCENT:            PRODUCT,
+	token.S_EQUAL:              COMPARE,
+	token.S_NOT_EQUAL:          COMPARE,
+	token.S_GREATER_THAN:       COMPARE,
+	token.S_GREATER_THAN_EQUAL: COMPARE,
+	token.S_LESS_THAN:          COMPARE,
+	token.S_LESS_THAN_EQUAL:    COMPARE,
+	token.K_NOT:                NOT,
+	token.K_AND:                AND_OR,
+	token.K_OR:                 AND_OR,
+	token.K_IS:                 COMPARE,
+	token.K_ISNULL:             COMPARE,
+	token.K_NOTNULL:            COMPARE,
+	token.K_BETWEEN:            COMPARE,
 }
 
 type parser struct {
@@ -63,12 +79,31 @@ func new(tokens token.Tokens) *parser {
 	p.unaryParseFunc[token.S_MINUS] = p.parsePrefixExpr
 	p.unaryParseFunc[token.IDENT] = p.parseIdent
 	p.unaryParseFunc[token.STRING] = p.parseString
+	p.unaryParseFunc[token.K_TRUE] = p.parseBoolExpr
+	p.unaryParseFunc[token.K_FALSE] = p.parseBoolExpr
+	p.unaryParseFunc[token.K_NOT] = p.parsePrefixExpr
+	p.unaryParseFunc[token.K_NULL] = p.parseNullExpr
+	p.unaryParseFunc[token.K_CAST] = p.parseCastExpr
+	p.unaryParseFunc[token.K_CASE] = p.parseCaseExpr
 
 	p.binaryParseFunc[token.S_PLUS] = p.parseBinaryExpr
 	p.binaryParseFunc[token.S_MINUS] = p.parseBinaryExpr
 	p.binaryParseFunc[token.S_ASTERISK] = p.parseBinaryExpr
 	p.binaryParseFunc[token.S_SOLIDAS] = p.parseBinaryExpr
 	p.binaryParseFunc[token.S_PERCENT] = p.parseBinaryExpr
+	p.binaryParseFunc[token.S_EQUAL] = p.parseBinaryExpr
+	p.binaryParseFunc[token.S_NOT_EQUAL] = p.parseBinaryExpr
+	p.binaryParseFunc[token.S_GREATER_THAN] = p.parseBinaryExpr
+	p.binaryParseFunc[token.S_GREATER_THAN_EQUAL] = p.parseBinaryExpr
+	p.binaryParseFunc[token.S_LESS_THAN] = p.parseBinaryExpr
+	p.binaryParseFunc[token.S_LESS_THAN_EQUAL] = p.parseBinaryExpr
+	p.binaryParseFunc[token.K_AND] = p.parseBinaryExpr
+	p.binaryParseFunc[token.K_OR] = p.parseBinaryExpr
+	p.binaryParseFunc[token.K_IS] = p.parseIsExpr
+	p.binaryParseFunc[token.K_ISNULL] = p.parseIsExpr
+	p.binaryParseFunc[token.K_NOTNULL] = p.parseIsExpr
+	p.binaryParseFunc[token.K_NOT] = p.parseNotExpr
+	p.binaryParseFunc[token.K_BETWEEN] = p.parseBetweenExpr
 
 	return p
 }
