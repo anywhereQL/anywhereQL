@@ -174,6 +174,23 @@ func (r *Runtime) scanExpr(expr *ast.Expression) error {
 				return err
 			}
 		}
+	} else if expr.Between != nil {
+		if expr.Between.Src != nil {
+			if err := r.scanExpr(expr.Between.Src); err != nil {
+				return err
+			}
+		}
+		if expr.Between.Begin != nil {
+			if err := r.scanExpr(expr.Between.Begin); err != nil {
+				return err
+			}
+		}
+		if expr.Between.End != nil {
+			if err := r.scanExpr(expr.Between.End); err != nil {
+				return err
+			}
+		}
+
 	}
 	return nil
 }

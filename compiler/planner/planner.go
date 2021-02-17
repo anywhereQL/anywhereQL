@@ -209,6 +209,31 @@ func translateExpr(expr *ast.Expression) []vm.ExprVMCode {
 			Type:   value.STRING,
 			String: endMark.String(),
 		}})
+	} else if expr.Between != nil {
+		b := translateExpr(expr.Between.Src)
+		b = append(b, translateExpr(expr.Between.Begin)...)
+		b = append(b, vm.ExprVMCode{Operator: vm.GTE})
+
+		e := translateExpr(expr.Between.Src)
+		e = append(e, translateExpr(expr.Between.End)...)
+		e = append(e, vm.ExprVMCode{Operator: vm.LTE})
+
+		t := []vm.ExprVMCode{}
+		t = append(t, vm.ExprVMCode{Operator: vm.PUSH, Operand: value.Value{Type: value.BOOL, Bool: value.Bool{True: true}}})
+		t = append(t, vm.ExprVMCode{Operator: vm.JMP, Operand: value.Value{Type: value.INTEGER, Int: 1}})
+
+		f := []vm.ExprVMCode{}
+		f = append(f, vm.ExprVMCode{Operator: vm.PUSH, Operand: value.Value{Type: value.BOOL, Bool: value.Bool{False: true}}})
+
+		codes = append(codes, b...)
+		codes = append(codes, vm.ExprVMCode{Operator: vm.JMPNC, Operand: value.Value{Type: value.INTEGER, Int: int64(len(e) + len(t) + 1)}})
+		codes = append(codes, e...)
+		codes = append(codes, vm.ExprVMCode{Operator: vm.JMPNC, Operand: value.Value{Type: value.INTEGER, Int: int64(len(t))}})
+		codes = append(codes, t...)
+		codes = append(codes, f...)
+		if expr.Between.Not {
+			codes = append(codes, vm.ExprVMCode{Operator: vm.SWAP})
+		}
 	}
 	return codes
 }

@@ -39,6 +39,7 @@ const (
 	K_THEN
 	K_ELSE
 	K_END
+	K_BETWEEN
 
 	S_PLUS
 	S_MINUS
@@ -121,6 +122,8 @@ func (t Type) String() string {
 		return "Keyword (ELSE)"
 	case K_END:
 		return "Keyword (END)"
+	case K_BETWEEN:
+		return "Keyword (BETWEEN)"
 
 	case S_PLUS:
 		return "Symbol (+)"
@@ -223,6 +226,8 @@ func LookupKeyword(s string) (bool, Type) {
 		return true, K_ELSE
 	case "END":
 		return true, K_END
+	case "BETWEEN":
+		return true, K_BETWEEN
 
 	default:
 		return false, UNKNOWN

@@ -251,31 +251,40 @@ func (p *parser) parseIsExpr(left *ast.Expression) (*ast.Expression, error) {
 	expr := &ast.Expression{
 		BinaryOperation: &ast.BinaryOpe{
 			Left: left,
-			Right: &ast.Expression{
-				Literal: &ast.Literal{
-					NULL: true,
-				},
-			},
 		},
 	}
 
 	if p.currentToken.Type == token.K_IS {
-		if p.getNextToken().Type == token.K_NULL {
+		if p.getNextToken().Type == token.K_NOT {
 			p.readToken()
-			expr.BinaryOperation.Operator = ast.B_EQUAL
-		} else {
-			if p.getNextToken().Type == token.K_NOT {
-				p.readToken()
-				if p.getNextToken().Type != token.K_NULL {
-					return expr, fmt.Errorf("Unknown IS Expr")
-				}
-				p.readToken()
-				expr.BinaryOperation.Operator = ast.B_NOT_EQUAL
+			right, err := p.parseExpression(LOWEST)
+			if err != nil {
+				return expr, err
 			}
+			expr.BinaryOperation.Right = right
+			expr.BinaryOperation.Operator = ast.B_NOT_EQUAL
+		} else {
+			p.readToken()
+			right, err := p.parseExpression(LOWEST)
+			if err != nil {
+				return expr, err
+			}
+			expr.BinaryOperation.Right = right
+			expr.BinaryOperation.Operator = ast.B_EQUAL
 		}
 	} else if p.currentToken.Type == token.K_ISNULL {
+		expr.BinaryOperation.Right = &ast.Expression{
+			Literal: &ast.Literal{
+				NULL: true,
+			},
+		}
 		expr.BinaryOperation.Operator = ast.B_EQUAL
 	} else if p.currentToken.Type == token.K_NOTNULL {
+		expr.BinaryOperation.Right = &ast.Expression{
+			Literal: &ast.Literal{
+				NULL: true,
+			},
+		}
 		expr.BinaryOperation.Operator = ast.B_NOT_EQUAL
 	}
 	return expr, nil
@@ -380,6 +389,65 @@ func (p *parser) parseCaseExpr() (*ast.Expression, error) {
 	if p.currentToken.Type != token.K_END {
 		return expr, fmt.Errorf("Unexpected Token")
 	}
+
+	return expr, nil
+}
+
+func (p *parser) parseNotExpr(left *ast.Expression) (*ast.Expression, error) {
+	expr := &ast.Expression{}
+
+	p.readToken()
+
+	if p.currentToken.Type == token.K_BETWEEN {
+		bet, err := p.parseBetweenExpr(left)
+		if err != nil {
+			return expr, err
+		}
+		expr.Between = bet.Between
+		expr.Between.Not = true
+	} else if p.currentToken.Type == token.K_NULL {
+		expr.BinaryOperation = &ast.BinaryOpe{
+			Left: left,
+			Right: &ast.Expression{
+				Literal: &ast.Literal{
+					NULL: true,
+				},
+			},
+			Operator: ast.B_NOT_EQUAL,
+		}
+	}
+
+	return expr, nil
+}
+
+func (p *parser) parseBetweenExpr(left *ast.Expression) (*ast.Expression, error) {
+	expr := &ast.Expression{
+		Between: &ast.Between{
+			Src: left,
+		},
+	}
+	p.readToken()
+	begin, err := p.parseExpression(COMPARE)
+	if err != nil {
+		return expr, err
+	}
+	expr.Between.Begin = begin
+
+	p.readToken()
+
+	fmt.Printf("%#+v", p.currentToken)
+
+	if p.currentToken.Type != token.K_AND {
+		return expr, fmt.Errorf("Unknwon BETWEEN Expr")
+	}
+
+	p.readToken()
+
+	end, err := p.parseExpression(COMPARE)
+	if err != nil {
+		return expr, err
+	}
+	expr.Between.End = end
 
 	return expr, nil
 }

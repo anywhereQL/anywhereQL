@@ -33,6 +33,14 @@ type Expression struct {
 	Column          *Column
 	Cast            *Cast
 	Case            *Case
+	Between         *Between
+}
+
+type Between struct {
+	Not   bool
+	Src   *Expression
+	Begin *Expression
+	End   *Expression
 }
 
 type Case struct {
