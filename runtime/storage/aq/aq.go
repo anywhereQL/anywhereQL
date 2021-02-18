@@ -184,26 +184,40 @@ func (e *Engine) parseColumn(db, table string, cols []string) ([]value.Value, er
 	ret := []value.Value{}
 	for n, col := range cols {
 		val := value.Value{}
-		switch e.DB[db].Tables[table].Columns[n].Type {
-		case value.INTEGER:
-			v, err := strconv.ParseInt(col, 10, 64)
-			if err != nil {
-				return nil, err
+		if col == "" {
+			val.Type = value.NULL
+		} else {
+			switch e.DB[db].Tables[table].Columns[n].Type {
+			case value.INTEGER:
+				v, err := strconv.ParseInt(col, 10, 64)
+				if err != nil {
+					return nil, err
+				}
+				val.Int = v
+				val.Type = value.INTEGER
+			case value.FLOAT:
+				v, err := strconv.ParseFloat(col, 64)
+				if err != nil {
+					return nil, err
+				}
+				val.Float = v
+				val.Type = value.FLOAT
+			case value.STRING:
+				v := strings.TrimPrefix(strings.TrimSuffix(col, "\""), "\"")
+				val.String = v
+				val.Type = value.STRING
+			case value.BOOL:
+				val.Type = value.BOOL
+				if strings.ToUpper(col) == "TRUE" {
+					val.Bool.True = true
+				} else if strings.ToUpper(col) == "FALSE" {
+					val.Bool.False = true
+				} else {
+					return nil, fmt.Errorf("Unknown Bool string")
+				}
+			default:
+				return nil, fmt.Errorf("Not Impli")
 			}
-			val.Int = v
-			val.Type = value.INTEGER
-		case value.FLOAT:
-			v, err := strconv.ParseFloat(col, 64)
-			if err != nil {
-				return nil, err
-			}
-			val.Float = v
-			val.Type = value.FLOAT
-		case value.STRING:
-			val.String = col
-			val.Type = value.STRING
-		default:
-			return nil, fmt.Errorf("Not Impli")
 		}
 		ret = append(ret, val)
 	}

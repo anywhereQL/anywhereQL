@@ -19,6 +19,7 @@ const (
 	STRING
 	NULL
 	COLUMN
+	BOOL
 )
 
 func (t Type) String() string {
@@ -39,6 +40,8 @@ func (t Type) String() string {
 		return "Null"
 	case COLUMN:
 		return "Column"
+	case BOOL:
+		return "Boolean"
 	default:
 		return "Error Unknwo value type"
 	}
@@ -50,10 +53,16 @@ type Value struct {
 	Float  float64
 	String string
 	Column Column
+	Bool   Bool
 
 	PartI  int64
 	PartF  int64
 	FDigit int
+}
+
+type Bool struct {
+	True  bool
+	False bool
 }
 
 type Column struct {

@@ -83,6 +83,23 @@ func (p *parser) parseBinaryExpr(left *ast.Expression) (*ast.Expression, error) 
 		expr.BinaryOperation.Operator = ast.B_SOLIDAS
 	case token.S_PERCENT:
 		expr.BinaryOperation.Operator = ast.B_PERCENT
+	case token.S_EQUAL:
+		expr.BinaryOperation.Operator = ast.B_EQUAL
+	case token.S_NOT_EQUAL:
+		expr.BinaryOperation.Operator = ast.B_NOT_EQUAL
+	case token.S_GREATER_THAN:
+		expr.BinaryOperation.Operator = ast.B_GREATER_THAN
+	case token.S_GREATER_THAN_EQUAL:
+		expr.BinaryOperation.Operator = ast.B_GREATER_THAN_EQUAL
+	case token.S_LESS_THAN:
+		expr.BinaryOperation.Operator = ast.B_LESS_THAN
+	case token.S_LESS_THAN_EQUAL:
+		expr.BinaryOperation.Operator = ast.B_LESS_THAN_EQUAL
+	case token.K_AND:
+		expr.BinaryOperation.Operator = ast.B_AND
+	case token.K_OR:
+		expr.BinaryOperation.Operator = ast.B_OR
+
 	default:
 		return expr, fmt.Errorf("Unknown Binary Operator: %s", p.currentToken.Literal)
 	}
@@ -122,6 +139,8 @@ func (p *parser) parsePrefixExpr() (*ast.Expression, error) {
 		expr.UnaryOperation.Operator = ast.U_PLUS
 	case token.S_MINUS:
 		expr.UnaryOperation.Operator = ast.U_MINUS
+	case token.K_NOT:
+		expr.UnaryOperation.Operator = ast.U_NOT
 	default:
 		return expr, fmt.Errorf("Unknwon Prefix Operator: %s", p.currentToken.Literal)
 	}
@@ -210,6 +229,225 @@ func (p *parser) parseColumnExpr() (*ast.Expression, error) {
 	} else {
 		expr.Column.Column = literal[0]
 	}
+
+	return expr, nil
+}
+
+func (p *parser) parseBoolExpr() (*ast.Expression, error) {
+	expr := &ast.Expression{
+		Literal: &ast.Literal{
+			Bool: &ast.Bool{},
+		},
+	}
+	if p.currentToken.Type == token.K_TRUE {
+		expr.Literal.Bool.True = true
+	} else if p.currentToken.Type == token.K_FALSE {
+		expr.Literal.Bool.False = true
+	}
+	return expr, nil
+}
+
+func (p *parser) parseIsExpr(left *ast.Expression) (*ast.Expression, error) {
+	expr := &ast.Expression{
+		BinaryOperation: &ast.BinaryOpe{
+			Left: left,
+		},
+	}
+
+	if p.currentToken.Type == token.K_IS {
+		if p.getNextToken().Type == token.K_NOT {
+			p.readToken()
+			right, err := p.parseExpression(LOWEST)
+			if err != nil {
+				return expr, err
+			}
+			expr.BinaryOperation.Right = right
+			expr.BinaryOperation.Operator = ast.B_NOT_EQUAL
+		} else {
+			p.readToken()
+			right, err := p.parseExpression(LOWEST)
+			if err != nil {
+				return expr, err
+			}
+			expr.BinaryOperation.Right = right
+			expr.BinaryOperation.Operator = ast.B_EQUAL
+		}
+	} else if p.currentToken.Type == token.K_ISNULL {
+		expr.BinaryOperation.Right = &ast.Expression{
+			Literal: &ast.Literal{
+				NULL: true,
+			},
+		}
+		expr.BinaryOperation.Operator = ast.B_EQUAL
+	} else if p.currentToken.Type == token.K_NOTNULL {
+		expr.BinaryOperation.Right = &ast.Expression{
+			Literal: &ast.Literal{
+				NULL: true,
+			},
+		}
+		expr.BinaryOperation.Operator = ast.B_NOT_EQUAL
+	}
+	return expr, nil
+}
+
+func (p *parser) parseNullExpr() (*ast.Expression, error) {
+	expr := &ast.Expression{
+		Literal: &ast.Literal{
+			NULL: true,
+		},
+	}
+	return expr, nil
+}
+
+func (p *parser) parseCastExpr() (*ast.Expression, error) {
+	expr := &ast.Expression{
+		Cast: &ast.Cast{},
+	}
+	p.readToken()
+	if p.currentToken.Type != token.S_LPAREN {
+		return nil, fmt.Errorf("Unknown Cast format")
+	}
+	p.readToken()
+	ex, err := p.parseExpression(LOWEST)
+	if err != nil {
+		return nil, err
+	}
+	expr.Cast.Expr = ex
+	p.readToken()
+	if p.currentToken.Type != token.K_AS {
+		return nil, fmt.Errorf("Unknown Cast format")
+	}
+	p.readToken()
+
+	switch p.currentToken.Type {
+	case token.K_INT, token.K_INTEGER:
+		expr.Cast.Type = ast.T_INT
+	case token.K_FLOAT, token.K_DOUBLE:
+		expr.Cast.Type = ast.T_FLOAT
+	case token.K_STRING:
+		expr.Cast.Type = ast.T_STRING
+	default:
+		return nil, fmt.Errorf("Unknown cast type")
+	}
+	p.readToken()
+	if p.currentToken.Type != token.S_RPAREN {
+		return nil, fmt.Errorf("Unknown Cast format")
+	}
+
+	return expr, nil
+}
+
+func (p *parser) parseCaseExpr() (*ast.Expression, error) {
+	expr := &ast.Expression{
+		Case: &ast.Case{},
+	}
+
+	p.readToken()
+
+	if p.currentToken.Type != token.K_WHEN {
+		ex, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return expr, err
+		}
+		expr.Case.Value = ex
+		p.readToken()
+	}
+	for {
+		if p.currentToken.Type != token.K_WHEN {
+			return expr, fmt.Errorf("Unknown Case format")
+		}
+		p.readToken()
+		cond, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return expr, err
+		}
+		p.readToken()
+		if p.currentToken.Type != token.K_THEN {
+			return expr, fmt.Errorf("Unexpected token")
+		}
+		p.readToken()
+		rslt, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return expr, err
+		}
+		expr.Case.CaseValues = append(expr.Case.CaseValues, ast.CaseCondition{Condition: cond, Result: rslt})
+		p.readToken()
+		if p.currentToken.Type == token.K_ELSE || p.currentToken.Type == token.K_END {
+			break
+		}
+	}
+
+	if p.currentToken.Type == token.K_ELSE {
+		p.readToken()
+		e, err := p.parseExpression(LOWEST)
+		if err != nil {
+			return expr, err
+		}
+		expr.Case.ElseValue = e
+		p.readToken()
+	}
+	if p.currentToken.Type != token.K_END {
+		return expr, fmt.Errorf("Unexpected Token")
+	}
+
+	return expr, nil
+}
+
+func (p *parser) parseNotExpr(left *ast.Expression) (*ast.Expression, error) {
+	expr := &ast.Expression{}
+
+	p.readToken()
+
+	if p.currentToken.Type == token.K_BETWEEN {
+		bet, err := p.parseBetweenExpr(left)
+		if err != nil {
+			return expr, err
+		}
+		expr.Between = bet.Between
+		expr.Between.Not = true
+	} else if p.currentToken.Type == token.K_NULL {
+		expr.BinaryOperation = &ast.BinaryOpe{
+			Left: left,
+			Right: &ast.Expression{
+				Literal: &ast.Literal{
+					NULL: true,
+				},
+			},
+			Operator: ast.B_NOT_EQUAL,
+		}
+	}
+
+	return expr, nil
+}
+
+func (p *parser) parseBetweenExpr(left *ast.Expression) (*ast.Expression, error) {
+	expr := &ast.Expression{
+		Between: &ast.Between{
+			Src: left,
+		},
+	}
+	p.readToken()
+	begin, err := p.parseExpression(COMPARE)
+	if err != nil {
+		return expr, err
+	}
+	expr.Between.Begin = begin
+
+	p.readToken()
+
+	fmt.Printf("%#+v", p.currentToken)
+
+	if p.currentToken.Type != token.K_AND {
+		return expr, fmt.Errorf("Unknwon BETWEEN Expr")
+	}
+
+	p.readToken()
+
+	end, err := p.parseExpression(COMPARE)
+	if err != nil {
+		return expr, err
+	}
+	expr.Between.End = end
 
 	return expr, nil
 }
