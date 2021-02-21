@@ -1,0 +1,14 @@
+{
+  "file": "station.tsv",
+  "name": "station",
+  "columns": [
+    {
+      "name": "id",
+      "type": "INT"
+    },
+    {
+      "name": "Name",
+      "type": "STRING"
+    }
+  ]
+}

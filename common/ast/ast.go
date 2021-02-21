@@ -18,7 +18,8 @@ type SELECTClause struct {
 }
 
 type FROMClause struct {
-	Table *Table
+	Table  *Table
+	Joined []JoinedTable
 }
 
 type SelectColumn struct {
@@ -190,4 +191,38 @@ type Table struct {
 	Table  string
 	DB     string
 	Schema string
+	Alias  string
+}
+
+type JoinType int
+
+const (
+	INNER JoinType = iota
+	LEFT
+	RIGHT
+	FULL
+	CROSS
+)
+
+func (j JoinType) String() string {
+	switch j {
+	case INNER:
+		return "INNER JOIN"
+	case LEFT:
+		return "LEFT OUTER JOIN"
+	case RIGHT:
+		return "RIGHT OUTER JOIN"
+	case FULL:
+		return "FULL OUTER JOIN"
+	case CROSS:
+		return "CROSS JOIN"
+	default:
+		return "Unknown"
+	}
+}
+
+type JoinedTable struct {
+	Type      JoinType
+	Table     *Table
+	Condition *Expression
 }

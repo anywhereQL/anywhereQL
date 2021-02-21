@@ -52,6 +52,9 @@ func printColumn(out io.Writer, col ast.SelectColumn) {
 
 func printFROMClause(out io.Writer, from *ast.FROMClause) {
 	printTable(out, from.Table)
+	for _, tbl := range from.Joined {
+		printTable(out, tbl.Table)
+	}
 }
 
 func printExpression(out io.Writer, sep string, expr *ast.Expression) {
