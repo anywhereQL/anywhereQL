@@ -1,11 +1,11 @@
-package vm
+package runtime
 
 import (
 	"fmt"
 
+	"github.com/anywhereQL/anywhereQL/common/ast"
 	"github.com/anywhereQL/anywhereQL/common/value"
-	"github.com/anywhereQL/anywhereQL/runtime/storage/virtual"
-	"github.com/anywhereQL/anywhereQL/runtime/vm/function"
+	"github.com/anywhereQL/anywhereQL/runtime/function"
 )
 
 type ExprOpeType int
@@ -120,7 +120,7 @@ func (c ExprVMCode) String() string {
 		case value.STRING:
 			s = fmt.Sprintf("%s %s", s, c.Operand.String)
 		case value.COLUMN:
-			s = fmt.Sprintf("%s %s.%s", s, c.Operand.Column.TableID, c.Operand.Column.Column)
+			s = fmt.Sprintf("%s %s", s, c.Operand.Column.Column)
 		case value.BOOL:
 			if c.Operand.Bool.True {
 				s = fmt.Sprintf("%s TRUE", s)
@@ -135,7 +135,7 @@ func (c ExprVMCode) String() string {
 	return s
 }
 
-func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
+func (r *Runtime) ExprRun(codes []ExprVMCode, vals map[ast.Column]value.Value) (value.Value, error) {
 	s := newStack()
 	col := value.Value{}
 
@@ -352,11 +352,17 @@ func ExprRun(codes []ExprVMCode, line int) (value.Value, error) {
 			col = v
 
 		case PICK:
-			eng := virtual.VirtualStorage
-			r, err := eng.GetValue(code.Operand.Column.TableID, code.Operand.Column.Column, line)
-			if err != nil {
-				return col, err
+			tbl := ast.Table{
+				Schema: code.Operand.Column.Schema,
+				DB:     code.Operand.Column.DB,
+				Table:  code.Operand.Column.Table,
 			}
+			col := ast.Column{
+				Column: code.Operand.Column.Column,
+				Table:  tbl,
+			}
+			//c := code.Operand.Column.Column
+			r := vals[col]
 			s.push(r)
 
 		case EQ:

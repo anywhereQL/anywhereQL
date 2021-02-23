@@ -149,27 +149,27 @@ func (p *parser) getNextTokenPrecedence() int {
 	return LOWEST
 }
 
-func (p *parser) parse() ([]ast.SQL, error) {
-	SQLs := []ast.SQL{}
+func (p *parser) parse() (*ast.SQL, error) {
+	var sql *ast.SQL
 	for {
 		if p.currentToken.Type == token.K_SELECT {
 			ss, err := p.parseSELECTStatement()
 			if err != nil {
-				return SQLs, err
+				return nil, err
 			}
-			sql := ast.SQL{
+			sql = &ast.SQL{
 				SELECTStatement: ss,
 			}
-			SQLs = append(SQLs, sql)
 		} else {
-			return SQLs, fmt.Errorf("Unexpected Token %s", p.currentToken.Literal)
+			return nil, fmt.Errorf("Unexpected Token %s", p.currentToken.Literal)
 		}
 		if p.currentToken.Type == token.S_SEMICOLON {
 			p.readToken()
+			break
 		}
 		if p.currentToken.Type == token.EOS {
 			break
 		}
 	}
-	return SQLs, nil
+	return sql, nil
 }

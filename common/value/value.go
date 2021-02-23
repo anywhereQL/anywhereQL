@@ -66,8 +66,10 @@ type Bool struct {
 }
 
 type Column struct {
-	Column  string
-	TableID string
+	Schema string
+	DB     string
+	Table  string
+	Column string
 }
 
 type Table struct {

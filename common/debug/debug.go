@@ -6,7 +6,6 @@ import (
 
 	"github.com/anywhereQL/anywhereQL/common/ast"
 	"github.com/anywhereQL/anywhereQL/common/token"
-	"github.com/anywhereQL/anywhereQL/runtime/vm"
 )
 
 func PrintToken(out io.Writer, tokens token.Tokens) {
@@ -15,18 +14,11 @@ func PrintToken(out io.Writer, tokens token.Tokens) {
 	}
 }
 
-func PrintExprVC(out io.Writer, vc []vm.ExprVMCode) {
-	for n, c := range vc {
-		fmt.Fprintf(out, "[%d] %s\n", n, c)
+func PrintAST(out io.Writer, a *ast.AST) {
+	if a.SQL.SELECTStatement != nil {
+		printSELECT(out, a.SQL.SELECTStatement)
 	}
-}
 
-func PrintAST(out io.Writer, ast *ast.AST) {
-	for _, s := range ast.SQL {
-		if s.SELECTStatement != nil {
-			printSELECT(out, s.SELECTStatement)
-		}
-	}
 }
 
 func printSELECT(out io.Writer, ss *ast.SELECTStatement) {
@@ -52,6 +44,9 @@ func printColumn(out io.Writer, col ast.SelectColumn) {
 
 func printFROMClause(out io.Writer, from *ast.FROMClause) {
 	printTable(out, from.Table)
+	for _, tbl := range from.Joined {
+		printTable(out, tbl.Table)
+	}
 }
 
 func printExpression(out io.Writer, sep string, expr *ast.Expression) {
