@@ -84,17 +84,55 @@ func (r *Runtime) join(left, right string, tp ast.JoinType, cond *ast.Expression
 					continue
 				}
 				if ret.Bool.True == true {
-					line := make(map[ast.Column]value.Value)
-					for k, v := range lv {
-						line[k] = v
-					}
-					for k, v := range rv {
-						line[k] = v
-					}
-					tblValues = append(tblValues, line)
+					tblValues = append(tblValues, vals)
 				}
 			}
 		}
+	} else if tp == ast.LEFT {
+		for ln := 0; ln < ll; ln++ {
+			isFound := false
+			lv, _ := eng.GetLineValue(left, ln)
+			for rn := 0; rn < rl; rn++ {
+				rv, _ := eng.GetLineValue(right, rn)
+
+				vals := make(map[ast.Column]value.Value)
+				for k, v := range lv {
+					vals[k] = v
+				}
+				for k, v := range rv {
+					vals[k] = v
+				}
+				vc := r.Translate(cond)
+				ret, err := r.ExprRun(vc, vals)
+				if err != nil {
+					return "", err
+				}
+				if ret.Type != value.BOOL {
+					continue
+				}
+				if ret.Bool.True == true {
+					tblValues = append(tblValues, vals)
+					isFound = true
+				}
+			}
+			if !isFound {
+				line := make(map[ast.Column]value.Value)
+				for k, v := range lv {
+					line[k] = v
+				}
+				if rl != 0 {
+					rv, _ := eng.GetLineValue(right, 0)
+					for k := range rv {
+						line[k] = value.Value{
+							Type: value.NULL,
+						}
+					}
+				}
+				tblValues = append(tblValues, line)
+			}
+		}
+	} else if tp == ast.RIGHT {
+		return r.join(right, left, ast.LEFT, cond)
 	}
 	tID := uuid.New().String()
 	eng.WriteTable(tID, tblValues)
