@@ -6,18 +6,11 @@ import (
 
 	"github.com/anywhereQL/anywhereQL/common/ast"
 	"github.com/anywhereQL/anywhereQL/common/token"
-	"github.com/anywhereQL/anywhereQL/runtime/vm"
 )
 
 func PrintToken(out io.Writer, tokens token.Tokens) {
 	for n, token := range tokens {
 		fmt.Fprintf(out, "[%d] Type: %s Literal: %s\n", n, token.Type, token.Literal)
-	}
-}
-
-func PrintExprVC(out io.Writer, vc []vm.ExprVMCode) {
-	for n, c := range vc {
-		fmt.Fprintf(out, "[%d] %s\n", n, c)
 	}
 }
 

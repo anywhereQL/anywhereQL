@@ -1,7 +1,7 @@
 package ast
 
 type AST struct {
-	SQL []SQL
+	SQL *SQL
 }
 
 type SQL struct {
@@ -182,6 +182,7 @@ type FunctionCall struct {
 }
 
 type Column struct {
+	ID     string
 	Column string
 	Table  Table
 }
