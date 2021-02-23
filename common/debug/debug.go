@@ -14,12 +14,11 @@ func PrintToken(out io.Writer, tokens token.Tokens) {
 	}
 }
 
-func PrintAST(out io.Writer, ast *ast.AST) {
-	for _, s := range ast.SQL {
-		if s.SELECTStatement != nil {
-			printSELECT(out, s.SELECTStatement)
-		}
+func PrintAST(out io.Writer, a *ast.AST) {
+	if a.SQL.SELECTStatement != nil {
+		printSELECT(out, a.SQL.SELECTStatement)
 	}
+
 }
 
 func printSELECT(out io.Writer, ss *ast.SELECTStatement) {
