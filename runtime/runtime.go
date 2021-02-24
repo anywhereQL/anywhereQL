@@ -53,16 +53,24 @@ func (r *Runtime) runSQL(s *ast.SQL) ([][]value.Value, error) {
 			return nil, err
 		}
 	}
-	return r.runSelectStatement(s.SELECTStatement, tID)
+	if s.SELECTStatement.WHERE != nil {
+		if tID != "" {
+			tID, err = r.filter(tID, s.SELECTStatement.WHERE)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return r.runSelectClause(s.SELECTStatement.SELECT, tID)
 }
 
-func (r *Runtime) runSelectStatement(s *ast.SELECTStatement, tID string) ([][]value.Value, error) {
+func (r *Runtime) runSelectClause(s *ast.SELECTClause, tID string) ([][]value.Value, error) {
 	ret := [][]value.Value{}
 	eng := virtual.VirtualStorage
 	tl := eng.GetLine(tID)
 	if tl == 0 {
 		rl := []value.Value{}
-		for _, col := range s.SELECT.SelectColumns {
+		for _, col := range s.SelectColumns {
 			vc := r.Translate(col.Expression)
 			v, err := r.ExprRun(vc, nil)
 			if err != nil {
@@ -78,7 +86,7 @@ func (r *Runtime) runSelectStatement(s *ast.SELECTStatement, tID string) ([][]va
 				return ret, err
 			}
 			rl := []value.Value{}
-			for _, col := range s.SELECT.SelectColumns {
+			for _, col := range s.SelectColumns {
 				vc := r.Translate(col.Expression)
 				v, err := r.ExprRun(vc, lineValue)
 				if err != nil {

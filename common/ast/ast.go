@@ -11,6 +11,7 @@ type SQL struct {
 type SELECTStatement struct {
 	SELECT *SELECTClause
 	FROM   *FROMClause
+	WHERE  *Expression
 }
 
 type SELECTClause struct {
