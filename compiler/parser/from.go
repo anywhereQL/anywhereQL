@@ -21,11 +21,12 @@ func (p *parser) parseFROMClause() (*ast.FROMClause, error) {
 
 	for {
 		jt := ast.JoinedTable{}
-		if !(p.currentToken.Type == token.K_INNER || p.currentToken.Type == token.S_COMMA || p.currentToken.Type == token.K_LEFT || p.currentToken.Type == token.K_RIGHT || p.currentToken.Type == token.K_FULL) {
+		if !(p.currentToken.Type == token.K_INNER || p.currentToken.Type == token.S_COMMA || p.currentToken.Type == token.K_LEFT || p.currentToken.Type == token.K_RIGHT || p.currentToken.Type == token.K_FULL || p.currentToken.Type == token.K_CROSS) {
 			break
 		}
 		if p.currentToken.Type == token.S_COMMA {
 			jt.Type = ast.CROSS
+			p.readToken()
 		} else {
 			if p.currentToken.Type == token.K_INNER {
 				jt.Type = ast.INNER
@@ -47,6 +48,9 @@ func (p *parser) parseFROMClause() (*ast.FROMClause, error) {
 				if p.getNextToken().Type == token.K_OUTER {
 					p.readToken()
 				}
+				p.readToken()
+			} else if p.currentToken.Type == token.K_CROSS {
+				jt.Type = ast.CROSS
 				p.readToken()
 			}
 

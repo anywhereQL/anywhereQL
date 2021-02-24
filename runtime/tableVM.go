@@ -146,6 +146,68 @@ func (r *Runtime) join(left, right string, tp ast.JoinType, cond *ast.Expression
 			return "", err
 		}
 		return r.union(le, ri)
+	} else if tp == ast.CROSS {
+		tbl1 := []map[ast.Column]value.Value{}
+		for ln := 0; ln < ll; ln++ {
+			lv, _ := eng.GetLineValue(left, ln)
+			for rn := 0; rn < rl; rn++ {
+				rv, _ := eng.GetLineValue(right, rn)
+
+				vals := make(map[ast.Column]value.Value)
+				for k, v := range lv {
+					vals[k] = v
+				}
+				for k, v := range rv {
+					vals[k] = v
+				}
+				tbl1 = append(tbl1, vals)
+			}
+		}
+
+		tbl2 := []map[ast.Column]value.Value{}
+		for rn := 0; rn < rl; rn++ {
+			rv, _ := eng.GetLineValue(right, rn)
+			for ln := 0; ln < ll; ln++ {
+				lv, _ := eng.GetLineValue(left, ln)
+
+				vals := make(map[ast.Column]value.Value)
+				for k, v := range lv {
+					vals[k] = v
+				}
+				for k, v := range rv {
+					vals[k] = v
+				}
+				tbl2 = append(tbl2, vals)
+			}
+		}
+
+		for ln1 := 0; ln1 < len(tbl1); ln1++ {
+			v1 := tbl1[ln1]
+			tblValues = append(tblValues, v1)
+		}
+		for ln2 := 0; ln2 < len(tbl2); ln2++ {
+			v2 := tbl2[ln2]
+			isSame := false
+			for ln1 := 0; ln1 < len(tbl1); ln1++ {
+				v1 := tbl1[ln1]
+				if len(v1) != len(v2) {
+					return "", fmt.Errorf("Column length mismatch")
+				}
+				isColumnSame := true
+				for k, v := range v1 {
+					if !reflect.DeepEqual(v, v2[k]) {
+						isColumnSame = false
+						break
+					}
+				}
+				if isColumnSame == true {
+					isSame = true
+				}
+			}
+			if isSame == false {
+				tblValues = append(tblValues, v2)
+			}
+		}
 	}
 	tID := uuid.New().String()
 	eng.WriteTable(tID, tblValues)

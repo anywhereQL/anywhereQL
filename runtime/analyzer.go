@@ -30,8 +30,10 @@ func (r *Runtime) analyzeTable(f *ast.FROMClause) error {
 		if _, exists := r.columns[*jt.Table]; !exists {
 			r.getTableInfo(jt.Table)
 		}
-		if err := r.analyzeExpr(jt.Condition); err != nil {
-			return err
+		if jt.Type != ast.CROSS {
+			if err := r.analyzeExpr(jt.Condition); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
