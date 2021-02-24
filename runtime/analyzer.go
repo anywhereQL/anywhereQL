@@ -17,6 +17,9 @@ func (r *Runtime) analyzeSQL(s *ast.SQL) error {
 	for _, col := range s.SELECTStatement.SELECT.SelectColumns {
 		r.analyzeExpr(col.Expression)
 	}
+	if s.SELECTStatement.WHERE != nil {
+		r.analyzeExpr(s.SELECTStatement.WHERE)
+	}
 	return nil
 }
 

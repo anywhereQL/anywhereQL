@@ -215,7 +215,6 @@ func (r *Runtime) join(left, right string, tp ast.JoinType, cond *ast.Expression
 }
 
 func (r *Runtime) union(tbl1, tbl2 string) (string, error) {
-	fmt.Printf("UINON %s %s\n", tbl1, tbl2)
 	eng := virtual.VirtualStorage
 	l1 := eng.GetLine(tbl1)
 	l2 := eng.GetLine(tbl2)
@@ -250,6 +249,29 @@ func (r *Runtime) union(tbl1, tbl2 string) (string, error) {
 	}
 
 	tID := uuid.New().String()
+	eng.WriteTable(tID, tblValues)
+	return tID, nil
+}
+
+func (r *Runtime) filter(tID string, cond *ast.Expression) (string, error) {
+	eng := virtual.VirtualStorage
+	tblValues := []map[ast.Column]value.Value{}
+	ll := eng.GetLine(tID)
+	for ln := 0; ln < ll; ln++ {
+		v1, _ := eng.GetLineValue(tID, ln)
+		vc := r.Translate(cond)
+		ret, err := r.ExprRun(vc, v1)
+		if err != nil {
+			return "", err
+		}
+		if ret.Type != value.BOOL {
+			continue
+		}
+		if ret.Bool.True == true {
+			tblValues = append(tblValues, v1)
+		}
+	}
+
 	eng.WriteTable(tID, tblValues)
 	return tID, nil
 }
