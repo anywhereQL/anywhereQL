@@ -40,6 +40,14 @@ const (
 	K_ELSE
 	K_END
 	K_BETWEEN
+	K_INNER
+	K_OUTER
+	K_LEFT
+	K_RIGHT
+	K_FULL
+	K_JOIN
+	K_ON
+	K_CROSS
 
 	S_PLUS
 	S_MINUS
@@ -124,6 +132,22 @@ func (t Type) String() string {
 		return "Keyword (END)"
 	case K_BETWEEN:
 		return "Keyword (BETWEEN)"
+	case K_INNER:
+		return "Keyword (INNER)"
+	case K_OUTER:
+		return "Keyword (OUTER)"
+	case K_LEFT:
+		return "Keyword (LEFT)"
+	case K_RIGHT:
+		return "Keyword (RIGHT)"
+	case K_FULL:
+		return "Keyword (FULL)"
+	case K_JOIN:
+		return "Keyword (JOIN)"
+	case K_ON:
+		return "Keyword (ON)"
+	case K_CROSS:
+		return "Keyword (CROSS)"
 
 	case S_PLUS:
 		return "Symbol (+)"
@@ -228,6 +252,22 @@ func LookupKeyword(s string) (bool, Type) {
 		return true, K_END
 	case "BETWEEN":
 		return true, K_BETWEEN
+	case "INNER":
+		return true, K_INNER
+	case "OUTER":
+		return true, K_OUTER
+	case "LEFT":
+		return true, K_LEFT
+	case "RIGHT":
+		return true, K_RIGHT
+	case "FULL":
+		return true, K_FULL
+	case "JOIN":
+		return true, K_JOIN
+	case "ON":
+		return true, K_ON
+	case "CROSS":
+		return true, K_CROSS
 
 	default:
 		return false, UNKNOWN

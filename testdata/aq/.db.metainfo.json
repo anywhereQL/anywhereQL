@@ -4,6 +4,12 @@
   "tables": [
     {
       "Path": "test"
+    },
+    {
+      "Path": "weather"
+    },
+    {
+      "Path": "station"
     }
   ]
 }

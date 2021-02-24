@@ -1,0 +1,18 @@
+{
+  "file": "weather.tsv",
+  "name": "weather",
+  "columns": [
+    {
+      "name": "id",
+      "type": "INT"
+    },
+    {
+      "name": "MaxTemp",
+      "type": "FLOAT"
+    },
+    {
+      "name": "MinTemp",
+      "type": "FLOAT"
+    }
+  ]
+}

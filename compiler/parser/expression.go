@@ -211,6 +211,7 @@ func (p *parser) parseColumnExpr() (*ast.Expression, error) {
 			break
 		}
 		p.readToken()
+		p.readToken()
 	}
 	if len(literal) >= 5 {
 		return expr, fmt.Errorf("Unknown Column Expression")

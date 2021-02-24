@@ -2,7 +2,7 @@
 
 ``` ebnf
 <SQL> ::= <SELECT Statement>
-<SELECT Statement> ::= "SELECT" <Columns> "FROM" <Table Expr> ";"
+<SELECT Statement> ::= "SELECT" <Columns> [<FROM Clause>] ";"
 <Columns> ::= <Column> ["," <Column>]...
 <Column> ::= <expr>
 <expr> ::=   <Literal>
@@ -22,6 +22,7 @@
 <Function Call Expr> ::= <*Function Name> "(" [<expr> ["," <expr>]...]... ")"
 <Is Expr> ::= <expr> (("IS" ["NOT"] |"NULL" | "ISNULL" | "NOTNULL") | ("IS" ["NOT"] <expr>)
 <Column Expr> ::= [[[<*schema*> "."] <*database*> "."] <*table*> "."] <*column*>
+<FROM Clause> ::= "FROM" <Table Expr> [["AS"] <*alias*>] [INNER JOIN <Table Expr> [["AS"] <*alias*>] "ON" <expr>]...
 <Table Expr> ::= [[<*schema*> "."] <*database*> "."] <*table*>
 ```
 
