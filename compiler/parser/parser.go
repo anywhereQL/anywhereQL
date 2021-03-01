@@ -42,6 +42,7 @@ var precedences = map[token.Type]int{
 	token.K_ISNULL:             COMPARE,
 	token.K_NOTNULL:            COMPARE,
 	token.K_BETWEEN:            COMPARE,
+	token.K_IN:                 COMPARE,
 }
 
 type parser struct {
@@ -104,6 +105,7 @@ func new(tokens token.Tokens) *parser {
 	p.binaryParseFunc[token.K_NOTNULL] = p.parseIsExpr
 	p.binaryParseFunc[token.K_NOT] = p.parseNotExpr
 	p.binaryParseFunc[token.K_BETWEEN] = p.parseBetweenExpr
+	p.binaryParseFunc[token.K_IN] = p.parseInExpr
 
 	return p
 }

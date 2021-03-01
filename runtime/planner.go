@@ -235,6 +235,9 @@ func (r *Runtime) translateExpr(expr *ast.Expression) []ExprVMCode {
 		if expr.Between.Not {
 			codes = append(codes, ExprVMCode{Operator: SWAP})
 		}
+	} else if expr.In != nil {
+		s := r.translateExpr(expr.In.Src)
 	}
+
 	return codes
 }

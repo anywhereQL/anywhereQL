@@ -36,6 +36,14 @@ type Expression struct {
 	Cast            *Cast
 	Case            *Case
 	Between         *Between
+	In              *In
+}
+
+type In struct {
+	Not   bool
+	Src   *Expression
+	Table *Table
+	Expr  []Expression
 }
 
 type Between struct {
@@ -189,7 +197,6 @@ type Column struct {
 }
 
 type Table struct {
-	ID     string
 	Table  string
 	DB     string
 	Schema string
