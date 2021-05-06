@@ -416,6 +416,53 @@ func (p *parser) parseNotExpr(left *ast.Expression) (*ast.Expression, error) {
 			},
 			Operator: ast.B_NOT_EQUAL,
 		}
+	} else if p.currentToken.Type == token.K_IN {
+		in, err := p.parseInExpr(left)
+		if err != nil {
+			return expr, err
+		}
+		expr.In = in.In
+		expr.In.Not = true
+	}
+
+	return expr, nil
+}
+
+func (p *parser) parseInExpr(left *ast.Expression) (*ast.Expression, error) {
+	expr := &ast.Expression{
+		In: &ast.In{
+			Src:  left,
+			Expr: []ast.Expression{},
+		},
+	}
+
+	p.readToken()
+
+	if p.currentToken.Type != token.S_LPAREN {
+		p.readToken()
+		tbl, err := p.parseTable()
+		if err != nil {
+			return expr, err
+		}
+		expr.In.Table = tbl
+	} else {
+		p.readToken()
+		for {
+			ex, err := p.parseExpression(LOWEST)
+			if err != nil {
+				return expr, err
+			}
+			expr.In.Expr = append(expr.In.Expr, *ex)
+			p.readToken()
+			if p.currentToken.Type == token.S_RPAREN {
+				p.readToken()
+				break
+			}
+			if p.currentToken.Type != token.S_COMMA {
+				return expr, fmt.Errorf("Unknown In Expr")
+			}
+			p.readToken()
+		}
 	}
 
 	return expr, nil
