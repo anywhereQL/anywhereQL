@@ -26,6 +26,14 @@ func (p *parser) parseSELECTStatement() (*ast.SELECTStatement, error) {
 		}
 		statement.FROM = fromClause
 	}
+	if p.currentToken.Type == token.K_WHERE {
+		whereClause, err := p.parseWHEREClause()
+		if err != nil {
+			return statement, err
+		}
+		statement.WHERE = whereClause
+		p.readToken()
+	}
 	return statement, nil
 }
 
@@ -64,4 +72,10 @@ func (p *parser) parseSelectColumns() ([]ast.SelectColumn, error) {
 		}
 	}
 	return cols, nil
+}
+
+func (p *parser) parseWHEREClause() (*ast.Expression, error) {
+	p.readToken()
+
+	return p.parseExpression(LOWEST)
 }

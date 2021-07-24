@@ -235,6 +235,53 @@ func (r *Runtime) translateExpr(expr *ast.Expression) []ExprVMCode {
 		if expr.Between.Not {
 			codes = append(codes, ExprVMCode{Operator: SWAP})
 		}
+	} else if expr.In != nil {
+		endMark := uuid.New()
+		if len(expr.In.Expr) != 0 {
+			for n := range expr.In.Expr {
+				exp := &ast.Expression{
+					BinaryOperation: &ast.BinaryOpe{
+						Left:     expr.In.Src,
+						Right:    &expr.In.Expr[n],
+						Operator: ast.B_EQUAL,
+					},
+				}
+				chk := r.translateExpr(exp)
+				codes = append(codes, chk...)
+				codes = append(codes, ExprVMCode{Operator: JMPL, Operand: value.Value{
+					Type:   value.STRING,
+					String: endMark.String(),
+				}})
+			}
+		}
+
+		trueOpe := []ExprVMCode{}
+
+		trueOpe = append(trueOpe, ExprVMCode{Operator: LABEL, Operand: value.Value{
+			Type:   value.STRING,
+			String: endMark.String(),
+		}})
+		if expr.In.Not == false {
+			trueOpe = append(trueOpe, ExprVMCode{Operator: PUSH, Operand: value.Value{Type: value.BOOL, Bool: value.Bool{True: true}}})
+		} else {
+			trueOpe = append(trueOpe, ExprVMCode{Operator: PUSH, Operand: value.Value{Type: value.BOOL, Bool: value.Bool{False: true}}})
+		}
+		trueOpe = append(trueOpe, ExprVMCode{
+			Operator: JMPNC,
+			Operand: value.Value{
+				Type: value.INTEGER,
+				Int:  int64(1),
+			},
+		})
+
+		codes = append(codes, ExprVMCode{Operator: JMP, Operand: value.Value{Type: value.INTEGER, Int: int64(len(trueOpe))}})
+		codes = append(codes, trueOpe...)
+		if expr.In.Not == false {
+			trueOpe = append(trueOpe, ExprVMCode{Operator: PUSH, Operand: value.Value{Type: value.BOOL, Bool: value.Bool{False: true}}})
+		} else {
+			trueOpe = append(trueOpe, ExprVMCode{Operator: PUSH, Operand: value.Value{Type: value.BOOL, Bool: value.Bool{True: true}}})
+		}
 	}
+
 	return codes
 }

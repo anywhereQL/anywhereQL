@@ -1,0 +1,14 @@
+{
+  "file": "normal.tsv",
+  "name": "normal",
+  "columns": [
+    {
+      "name": "id",
+      "type": "INT"
+    },
+    {
+      "name": "Normal",
+      "type": "FLOAT"
+    }
+  ]
+}

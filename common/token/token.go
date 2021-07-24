@@ -48,6 +48,8 @@ const (
 	K_JOIN
 	K_ON
 	K_CROSS
+	K_WHERE
+	K_IN
 
 	S_PLUS
 	S_MINUS
@@ -148,6 +150,10 @@ func (t Type) String() string {
 		return "Keyword (ON)"
 	case K_CROSS:
 		return "Keyword (CROSS)"
+	case K_WHERE:
+		return "Keyword (WHERE)"
+	case K_IN:
+		return "Keyword (IN)"
 
 	case S_PLUS:
 		return "Symbol (+)"
@@ -268,6 +274,10 @@ func LookupKeyword(s string) (bool, Type) {
 		return true, K_ON
 	case "CROSS":
 		return true, K_CROSS
+	case "WHERE":
+		return true, K_WHERE
+	case "IN":
+		return true, K_IN
 
 	default:
 		return false, UNKNOWN

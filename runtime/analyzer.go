@@ -17,6 +17,9 @@ func (r *Runtime) analyzeSQL(s *ast.SQL) error {
 	for _, col := range s.SELECTStatement.SELECT.SelectColumns {
 		r.analyzeExpr(col.Expression)
 	}
+	if s.SELECTStatement.WHERE != nil {
+		r.analyzeExpr(s.SELECTStatement.WHERE)
+	}
 	return nil
 }
 
@@ -181,6 +184,19 @@ func (r *Runtime) analyzeExpr(expr *ast.Expression) error {
 		if err := r.analyzeExpr(expr.Between.End); err != nil {
 			return err
 		}
+	} else if expr.In != nil {
+		if err := r.analyzeExpr(expr.In.Src); err != nil {
+			return err
+		}
+		for i := range expr.In.Expr {
+			if err := r.analyzeExpr(&expr.In.Expr[i]); err != nil {
+				return err
+			}
+		}
+		if expr.In.Table != nil {
+			r.getTableInfo(expr.In.Table)
+		}
 	}
+
 	return nil
 }
