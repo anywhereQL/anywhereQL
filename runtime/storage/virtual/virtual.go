@@ -32,3 +32,11 @@ func (e *Engine) GetLineValue(tableID string, line int) (map[ast.Column]value.Va
 	vals := e.table[tableID][line]
 	return vals, nil
 }
+
+func (e *Engine) GetAllColumnInfo(tableID string) ([]ast.Column, error) {
+	ret := []ast.Column{}
+	for key := range e.table[tableID][0] {
+		ret = append(ret, key)
+	}
+	return ret, nil
+}

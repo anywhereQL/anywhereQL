@@ -14,18 +14,18 @@ type ColumnInfo struct {
 }
 
 type Runtime struct {
-	columns  map[ast.Table]map[string]ColumnInfo
-	rColumns map[string][]ast.Table
-	alias    map[string]ast.Table
-	tableID  map[ast.Table]string
+	columns    map[ast.Table]map[string]ColumnInfo
+	revColumns map[string][]ast.Table
+	alias      map[string]ast.Table
+	tableID    map[ast.Table]string
 }
 
 func New() *Runtime {
 	return &Runtime{
-		columns:  make(map[ast.Table]map[string]ColumnInfo),
-		rColumns: map[string][]ast.Table{},
-		tableID:  map[ast.Table]string{},
-		alias:    map[string]ast.Table{},
+		columns:    make(map[ast.Table]map[string]ColumnInfo),
+		revColumns: map[string][]ast.Table{},
+		tableID:    map[ast.Table]string{},
+		alias:      map[string]ast.Table{},
 	}
 }
 
@@ -80,19 +80,36 @@ func (r *Runtime) runSelectClause(s *ast.SELECTClause, tID string) ([][]value.Va
 		}
 		ret = append(ret, rl)
 	} else {
+		var cols []ast.Column
+		if s.IsAsterisk {
+			var err error
+			cols, err = eng.GetAllColumnInfo(tID)
+			if err != nil {
+				return ret, err
+			}
+		}
 		for l := 0; l < tl; l++ {
 			lineValue, err := eng.GetLineValue(tID, l)
 			if err != nil {
 				return ret, err
 			}
 			rl := []value.Value{}
-			for _, col := range s.SelectColumns {
-				vc := r.Translate(col.Expression)
-				v, err := r.ExprRun(vc, lineValue)
-				if err != nil {
-					return ret, err
+			if len(s.SelectColumns) == 0 {
+				if s.IsAsterisk {
+					for _, c := range cols {
+						v := lineValue[c]
+						rl = append(rl, v)
+					}
 				}
-				rl = append(rl, v)
+			} else {
+				for _, col := range s.SelectColumns {
+					vc := r.Translate(col.Expression)
+					v, err := r.ExprRun(vc, lineValue)
+					if err != nil {
+						return ret, err
+					}
+					rl = append(rl, v)
+				}
 			}
 			ret = append(ret, rl)
 		}
