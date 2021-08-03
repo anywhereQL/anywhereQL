@@ -15,6 +15,9 @@ type SELECTStatement struct {
 }
 
 type SELECTClause struct {
+	IsDistinct    bool
+	IsAll         bool
+	IsAsterisk    bool
 	SelectColumns []SelectColumn
 }
 

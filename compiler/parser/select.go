@@ -41,6 +41,20 @@ func (p *parser) parseSELECTClause() (*ast.SELECTClause, error) {
 	clause := &ast.SELECTClause{}
 	p.readToken()
 
+	if p.currentToken.Type == token.K_DISTINCT {
+		clause.IsDistinct = true
+		p.readToken()
+	} else if p.currentToken.Type == token.K_ALL {
+		clause.IsAll = true
+		p.readToken()
+	}
+
+	if p.currentToken.Type == token.S_ASTERISK {
+		clause.IsAsterisk = true
+		p.readToken()
+		return clause, nil
+	}
+
 	cols, err := p.parseSelectColumns()
 	if err != nil {
 		return clause, err

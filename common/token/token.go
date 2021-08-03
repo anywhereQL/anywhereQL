@@ -50,6 +50,8 @@ const (
 	K_CROSS
 	K_WHERE
 	K_IN
+	K_ALL
+	K_DISTINCT
 
 	S_PLUS
 	S_MINUS
@@ -154,6 +156,10 @@ func (t Type) String() string {
 		return "Keyword (WHERE)"
 	case K_IN:
 		return "Keyword (IN)"
+	case K_ALL:
+		return "Keyword (ALL)"
+	case K_DISTINCT:
+		return "Keyword (DISTINCT)"
 
 	case S_PLUS:
 		return "Symbol (+)"

@@ -14,8 +14,18 @@ func (r *Runtime) analyzeSQL(s *ast.SQL) error {
 			return err
 		}
 	}
-	for _, col := range s.SELECTStatement.SELECT.SelectColumns {
-		r.analyzeExpr(col.Expression)
+	if s.SELECTStatement.SELECT.IsAsterisk {
+		for c, tt := range r.revColumns {
+			for _, t := range tt {
+				ci := r.columns[t][c]
+				ci.RefCount += 1
+				r.columns[t][c] = ci
+			}
+		}
+	} else {
+		for _, col := range s.SELECTStatement.SELECT.SelectColumns {
+			r.analyzeExpr(col.Expression)
+		}
 	}
 	if s.SELECTStatement.WHERE != nil {
 		r.analyzeExpr(s.SELECTStatement.WHERE)
@@ -58,9 +68,9 @@ func (r *Runtime) getTableInfo(tbl *ast.Table) {
 	sInst := storage.GetInstance()
 	srcEng := sInst.GetEngine(tbl.Schema)
 	cMap := make(map[string]ColumnInfo)
-	for _, k := range (*srcEng).GetColumns(tbl.DB, tbl.Table) {
-		cMap[k] = ColumnInfo{Name: k, RefCount: 0}
-		r.rColumns[k] = append(r.rColumns[k], t)
+	for _, c := range (*srcEng).GetColumns(tbl.DB, tbl.Table) {
+		cMap[c] = ColumnInfo{Name: c, RefCount: 0}
+		r.revColumns[c] = append(r.revColumns[c], t)
 	}
 	r.columns[t] = cMap
 	if tbl.Alias != "" {
@@ -71,7 +81,7 @@ func (r *Runtime) getTableInfo(tbl *ast.Table) {
 
 func (r *Runtime) analyzeExpr(expr *ast.Expression) error {
 	if expr.Column != nil {
-		cIDs := r.rColumns[expr.Column.Column]
+		cIDs := r.revColumns[expr.Column.Column]
 		if expr.Column.Table.Schema == "" && expr.Column.Table.DB == "" && expr.Column.Table.Table == "" {
 			if len(cIDs) != 1 {
 				return fmt.Errorf("Ambious Column %s", expr.Column.Column)
